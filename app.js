@@ -3,9 +3,15 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const { Server } = require('socket.io');
+const session = require('express-session');
+const passport = require('./config/passport');
 
 const app = express();
 app.use(cors());
+app.use(session({ secret: process.env.SESSION_SECRET || 'gizli', resave: false, saveUninitialized: true }));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use('/auth', require('./routes/auth'));
 
 const server = http.createServer(app);
 const io = new Server(server, {
