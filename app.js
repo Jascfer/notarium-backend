@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const session = require('express-session');
 const passport = require('./config/passport');
 const mongoose = require('mongoose');
+const MongoStore = require('connect-mongo');
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555', {
   useNewUrlParser: true,
@@ -16,7 +17,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsg
 
 const app = express();
 app.use(cors());
-app.use(session({ secret: process.env.SESSION_SECRET || 'gizli', resave: false, saveUninitialized: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'gizli',
+  resave: false,
+  saveUninitialized: true,
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555' })
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/auth', require('./routes/auth'));
