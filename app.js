@@ -20,6 +20,8 @@ app.use(session({ secret: process.env.SESSION_SECRET || 'gizli', resave: false, 
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/auth', require('./routes/auth'));
+app.use('/api/notes', require('./routes/notes'));
+app.use('/api/chat', require('./routes/chat'));
 
 const server = http.createServer(app);
 const io = new Server(server, {
