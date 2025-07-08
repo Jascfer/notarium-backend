@@ -35,7 +35,11 @@ router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login', session: true }),
   (req, res) => {
     // Başarılı girişten sonra frontend'e yönlendir
-    res.redirect(process.env.CLIENT_URL || '/');
+    console.log('Google login sonrası req.user:', req.user);
+    console.log('Google login sonrası session:', req.session);
+    req.session.save(() => {
+      res.redirect(process.env.CLIENT_URL || '/');
+    });
   }
 );
 
@@ -59,7 +63,9 @@ router.post('/login', async (req, res) => {
       if (err) {
         return res.status(500).json({ message: "Giriş sırasında hata oluştu." });
       }
-      // --- EKLENDİ: Session kaydını garantiye al ---
+      // --- EKLENDİ: Debug logları ve session kaydı ---
+      console.log('Klasik login sonrası req.user:', req.user);
+      console.log('Klasik login sonrası session:', req.session);
       req.session.save(() => {
         res.json({ message: "Giriş başarılı", user });
       });
