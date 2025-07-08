@@ -7,6 +7,7 @@ const session = require('express-session');
 const passport = require('./config/passport');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
+const ChatMessage = require('./models/ChatMessage'); // EKLENDİ
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555', {
   useNewUrlParser: true,
@@ -65,13 +66,20 @@ io.on('connection', (socket) => {
   });
 
   // Kanal mesajlarını gönder
-  socket.on('joinChannel', (channel) => {
+  socket.on('joinChannel', async (channel) => {
     socket.join(channel);
-    socket.emit('chatHistory', channelMessages[channel] || []);
+    // --- YENİ: Kanal geçmişini MongoDB'den çek ---
+    try {
+      const messages = await ChatMessage.find({ channel }).populate('user', 'firstName lastName email').sort({ createdAt: 1 });
+      socket.emit('chatHistory', messages);
+    } catch (err) {
+      console.error('Kanal geçmişi alınamadı:', err);
+      socket.emit('chatHistory', []);
+    }
   });
 
   // Mesaj gönderildiğinde
-  socket.on('sendMessage', ({ channel, message }) => {
+  socket.on('sendMessage', async ({ channel, message }) => {
     // Etkinlik Duyuruları kanalına sadece adminler mesaj gönderebilir
     if (channel === 'etkinlik-duyurular') {
       const sender = Object.values(onlineUsers).find(u => u.id === message.id || u.name === message.user);
@@ -80,9 +88,21 @@ io.on('connection', (socket) => {
         return;
       }
     }
-    if (!channelMessages[channel]) channelMessages[channel] = [];
-    channelMessages[channel].push(message);
-    io.to(channel).emit('newMessage', message);
+    // --- YENİ: Mesajı MongoDB'ye kaydet ---
+    try {
+      // user alanı: message.userId (frontend'den ObjectId gelmeli!)
+      const savedMsg = await ChatMessage.create({
+        channel,
+        user: message.userId, // ObjectId olmalı
+        message: message.message
+      });
+      // Kullanıcı bilgisiyle populate et
+      const populatedMsg = await ChatMessage.findById(savedMsg._id).populate('user', 'firstName lastName email');
+      io.to(channel).emit('newMessage', populatedMsg);
+    } catch (err) {
+      console.error('Chat mesajı MongoDB\'ye kaydedilemedi:', err);
+      socket.emit('errorMessage', 'Mesaj kaydedilemedi.');
+    }
   });
 
   // Admin tarafından kullanıcıyı banla
