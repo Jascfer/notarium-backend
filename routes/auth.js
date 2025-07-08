@@ -68,12 +68,19 @@ router.post('/login', async (req, res) => {
 
 // Mevcut kullanıcı bilgisini getir
 router.get('/me', (req, res) => {
-  console.log('Auth check - isAuthenticated:', req.isAuthenticated());
-  console.log('Auth check - user:', req.user);
+  console.log('=== /auth/me endpoint called ===');
+  console.log('Request headers:', req.headers);
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  console.log('isAuthenticated:', req.isAuthenticated());
+  console.log('User:', req.user);
+  console.log('Cookies:', req.headers.cookie);
   
   if (req.isAuthenticated()) {
+    console.log('✅ User is authenticated, returning user data');
     res.json({ user: req.user });
   } else {
+    console.log('❌ User is not authenticated, returning 401');
     res.status(401).json({ message: "Oturum bulunamadı." });
   }
 });

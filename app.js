@@ -34,7 +34,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: ['https://notarium.up.railway.app', 'http://localhost:3000'],
+  origin: [
+    'https://notarium.up.railway.app', 
+    'https://notarium-frontend-production.up.railway.app',
+    'https://notarium-backend-production.up.railway.app',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 app.use(session({
@@ -46,7 +51,8 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 saat
+    maxAge: 24 * 60 * 60 * 1000, // 24 saat
+    domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined
   }
 }));
 app.use(passport.initialize());
