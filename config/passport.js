@@ -36,5 +36,4 @@ passport.deserializeUser(async (id, done) => {
   const user = await User.findById(id);
   done(null, user);
 });
-
-module.exports = passport; 
+// Do not export anything from this file! 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const passport = require('../config/passport');
+const passport = require('passport'); // Use the global passport instance
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
