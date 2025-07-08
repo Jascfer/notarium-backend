@@ -17,12 +17,20 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsg
 .catch(err => console.error('MongoDB bağlantı hatası:', err));
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'https://notarium.up.railway.app',
+  credentials: true
+}));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gizli',
   resave: false,
   saveUninitialized: true,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555' })
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555' }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    httpOnly: true
+  }
 }));
 app.use(passport.initialize());
 app.use(passport.session());
