@@ -142,7 +142,17 @@ router.post('/register', async (req, res) => {
     const user = await User.create({ firstName, lastName, email, password });
     console.log('User created successfully:', user._id);
     
-    res.status(201).json({ message: "Kayıt başarılı", user });
+    // --- EKLENDİ: Kayıt sonrası otomatik login ---
+    req.login(user, (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Kayıt sonrası login sırasında hata oluştu." });
+      }
+      console.log('Kayıt sonrası req.user:', req.user);
+      console.log('Kayıt sonrası session:', req.session);
+      req.session.save(() => {
+        res.status(201).json({ message: "Kayıt başarılı", user });
+      });
+    });
   } catch (err) {
     console.error('=== REGISTER ERROR ===');
     console.error('Error message:', err.message);
