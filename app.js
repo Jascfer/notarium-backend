@@ -18,18 +18,19 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsg
 
 const app = express();
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'https://notarium.up.railway.app',
+  origin: ['https://notarium.up.railway.app', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gizli',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555' }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
-    httpOnly: true
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 saat
   }
 }));
 app.use(passport.initialize());
