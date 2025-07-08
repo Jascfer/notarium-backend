@@ -15,6 +15,52 @@ router.get('/google/callback',
   }
 );
 
+// Klasik giriş
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(401).json({ message: "E-posta veya şifre hatalı." });
+    }
+    
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "E-posta veya şifre hatalı." });
+    }
+    
+    // Session'a kullanıcı bilgisini kaydet
+    req.login(user, (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Giriş sırasında hata oluştu." });
+      }
+      res.json({ message: "Giriş başarılı", user });
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Giriş sırasında hata oluştu.", error: err.message });
+  }
+});
+
+// Mevcut kullanıcı bilgisini getir
+router.get('/me', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.json({ user: req.user });
+  } else {
+    res.status(401).json({ message: "Oturum bulunamadı." });
+  }
+});
+
+// Çıkış
+router.post('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Çıkış sırasında hata oluştu." });
+    }
+    res.json({ message: "Çıkış başarılı" });
+  });
+});
+
 // Klasik kayıt (isim-soyisim benzersizliği kontrolü)
 router.post('/register', async (req, res) => {
   try {
