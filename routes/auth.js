@@ -59,7 +59,10 @@ router.post('/login', async (req, res) => {
       if (err) {
         return res.status(500).json({ message: "Giriş sırasında hata oluştu." });
       }
-      res.json({ message: "Giriş başarılı", user });
+      // --- EKLENDİ: Session kaydını garantiye al ---
+      req.session.save(() => {
+        res.json({ message: "Giriş başarılı", user });
+      });
     });
   } catch (err) {
     res.status(500).json({ message: "Giriş sırasında hata oluştu.", error: err.message });
