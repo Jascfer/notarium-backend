@@ -2,6 +2,30 @@ const express = require('express');
 const router = express.Router();
 const passport = require('../config/passport');
 const User = require('../models/User');
+const mongoose = require('mongoose');
+
+// Test endpoint - MongoDB bağlantısını kontrol et
+router.get('/test', (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const states = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+  
+  res.json({
+    message: 'Auth test endpoint',
+    mongodb: {
+      state: states[dbState],
+      readyState: dbState
+    },
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      MONGODB_URI: process.env.MONGODB_URI ? '***' : 'undefined'
+    }
+  });
+});
 
 // Google ile giriş başlat
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -66,34 +90,47 @@ router.post('/logout', (req, res) => {
 
 // Klasik kayıt (isim-soyisim benzersizliği kontrolü)
 router.post('/register', async (req, res) => {
+  console.log('=== REGISTER ENDPOINT CALLED ===');
+  console.log('Request headers:', req.headers);
+  console.log('Request body:', req.body);
+  
   try {
-    console.log('Register request body:', req.body);
     const { firstName, lastName, email, password } = req.body;
     
+    console.log('Extracted data:', { firstName, lastName, email, password: password ? '***' : undefined });
+    
     if (!firstName || !lastName || !email || !password) {
+      console.log('Missing required fields');
       return res.status(400).json({ 
         message: "Tüm alanlar gereklidir.", 
         received: { firstName, lastName, email, password: password ? '***' : undefined }
       });
     }
     
+    console.log('Checking for existing users...');
     const nameTaken = await User.findOne({ firstName, lastName });
+    console.log('Name taken result:', nameTaken ? 'YES' : 'NO');
+    
     if (nameTaken) {
       return res.status(400).json({ message: "Bu isim ve soyisim zaten alınmış." });
     }
     
     const emailTaken = await User.findOne({ email });
+    console.log('Email taken result:', emailTaken ? 'YES' : 'NO');
+    
     if (emailTaken) {
       return res.status(400).json({ message: "Bu e-posta zaten kayıtlı." });
     }
     
-    console.log('Creating user with:', { firstName, lastName, email });
+    console.log('Creating new user...');
     const user = await User.create({ firstName, lastName, email, password });
     console.log('User created successfully:', user._id);
     
     res.status(201).json({ message: "Kayıt başarılı", user });
   } catch (err) {
-    console.error('Register error:', err);
+    console.error('=== REGISTER ERROR ===');
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
     res.status(500).json({ 
       message: "Kayıt sırasında hata oluştu.", 
       error: err.message,

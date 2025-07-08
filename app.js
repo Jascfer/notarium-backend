@@ -9,14 +9,30 @@ const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
 const ChatMessage = require('./models/ChatMessage'); // EKLENDİ
 
+console.log('MongoDB URI:', process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555');
+
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log('MongoDB bağlantısı başarılı!'))
-.catch(err => console.error('MongoDB bağlantı hatası:', err));
+.then(() => console.log('✅ MongoDB bağlantısı başarılı!'))
+.catch(err => {
+  console.error('❌ MongoDB bağlantı hatası:', err);
+  console.error('MongoDB URI:', process.env.MONGODB_URI);
+});
 
 const app = express();
+
+// Debug: Environment variables
+console.log('Environment variables:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- MONGODB_URI:', process.env.MONGODB_URI ? '***' : 'undefined');
+console.log('- PORT:', process.env.PORT);
+
+// Body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cors({
   origin: ['https://notarium.up.railway.app', 'http://localhost:3000'],
   credentials: true
@@ -35,6 +51,16 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Backend is running!',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
+});
+
 app.use('/auth', require('./routes/auth'));
 app.use('/api/notes', require('./routes/notes'));
 app.use('/api/chat', require('./routes/chat'));
