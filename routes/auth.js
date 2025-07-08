@@ -44,6 +44,9 @@ router.post('/login', async (req, res) => {
 
 // Mevcut kullanıcı bilgisini getir
 router.get('/me', (req, res) => {
+  console.log('Auth check - isAuthenticated:', req.isAuthenticated());
+  console.log('Auth check - user:', req.user);
+  
   if (req.isAuthenticated()) {
     res.json({ user: req.user });
   } else {
@@ -64,19 +67,38 @@ router.post('/logout', (req, res) => {
 // Klasik kayıt (isim-soyisim benzersizliği kontrolü)
 router.post('/register', async (req, res) => {
   try {
+    console.log('Register request body:', req.body);
     const { firstName, lastName, email, password } = req.body;
+    
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ 
+        message: "Tüm alanlar gereklidir.", 
+        received: { firstName, lastName, email, password: password ? '***' : undefined }
+      });
+    }
+    
     const nameTaken = await User.findOne({ firstName, lastName });
     if (nameTaken) {
       return res.status(400).json({ message: "Bu isim ve soyisim zaten alınmış." });
     }
+    
     const emailTaken = await User.findOne({ email });
     if (emailTaken) {
       return res.status(400).json({ message: "Bu e-posta zaten kayıtlı." });
     }
+    
+    console.log('Creating user with:', { firstName, lastName, email });
     const user = await User.create({ firstName, lastName, email, password });
+    console.log('User created successfully:', user._id);
+    
     res.status(201).json({ message: "Kayıt başarılı", user });
   } catch (err) {
-    res.status(500).json({ message: "Kayıt sırasında hata oluştu.", error: err.message });
+    console.error('Register error:', err);
+    res.status(500).json({ 
+      message: "Kayıt sırasında hata oluştu.", 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
