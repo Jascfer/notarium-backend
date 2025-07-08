@@ -4,7 +4,8 @@ const http = require('http');
 const cors = require('cors');
 const { Server } = require('socket.io');
 const session = require('express-session');
-const passport = require('./config/passport');
+require('./config/passport'); // Configure passport (side effect)
+const passport = require('passport'); // Get the configured passport instance
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
 const ChatMessage = require('./models/ChatMessage'); // EKLENDİ
