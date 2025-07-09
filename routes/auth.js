@@ -85,6 +85,7 @@ router.get('/me', (req, res) => {
   console.log('Auth/me - All headers:', Object.keys(req.headers));
   console.log('Auth/me - Is authenticated:', req.isAuthenticated());
   console.log('Auth/me - User:', req.user);
+  console.log('Auth/me - Session ID:', req.sessionID);
   
   if (req.isAuthenticated()) {
     res.json({ user: req.user });
