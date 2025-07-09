@@ -30,8 +30,17 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res, next) => {
   console.log('Login attempt - Raw request body:', req.body);
   
-  // Request body'den sadece email ve password'ü al
-  const { email, password } = req.body;
+  // Request body'den email ve password'ü al
+  let email, password;
+  
+  // Eğer email field'ı object ise, içinden gerçek email'i al
+  if (req.body.email && typeof req.body.email === 'object' && req.body.email.email) {
+    email = req.body.email.email;
+    password = req.body.password || req.body.email.password;
+  } else {
+    email = req.body.email;
+    password = req.body.password;
+  }
   
   console.log('Login attempt - Extracted email:', email);
   console.log('Login attempt - Extracted password:', password);
