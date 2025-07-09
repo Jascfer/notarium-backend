@@ -8,7 +8,22 @@ const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
 
 const app = express();
-app.use(cors());
+const allowedOrigins = [
+  'https://notarium.up.railway.app',
+  'https://www.notarium.up.railway.app'
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 const server = http.createServer(app);
 const io = new Server(server, {
