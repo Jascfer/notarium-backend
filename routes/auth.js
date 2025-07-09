@@ -4,6 +4,8 @@ const passport = require('passport'); // Use the global passport instance
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
+const FRONTEND_URL = 'https://notarium.tr';
+
 // Test endpoint - MongoDB bağlantısını kontrol et
 router.get('/test', (req, res) => {
   const dbState = mongoose.connection.readyState;
@@ -32,7 +34,7 @@ router.get('/login', (req, res) => {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(404).json({ error: 'GET /auth/login sadece frontend için yönlendirilir.' });
   }
-  res.redirect('https://notarium.tr/auth/login');
+  res.redirect(`${FRONTEND_URL}/auth/login`);
 });
 
 // GET /register - Sadece tarayıcıdan doğrudan erişimde yönlendir
@@ -40,7 +42,7 @@ router.get('/register', (req, res) => {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(404).json({ error: 'GET /auth/register sadece frontend için yönlendirilir.' });
   }
-  res.redirect('https://notarium.tr/auth/register');
+  res.redirect(`${FRONTEND_URL}/auth/register`);
 });
 
 // GET /logout - Sadece tarayıcıdan doğrudan erişimde yönlendir
@@ -48,7 +50,7 @@ router.get('/logout', (req, res) => {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(404).json({ error: 'GET /auth/logout sadece frontend için yönlendirilir.' });
   }
-  res.redirect('https://notarium.tr');
+  res.redirect(FRONTEND_URL);
 });
 
 // GET /me - Sadece tarayıcıdan doğrudan erişimde yönlendir
@@ -56,7 +58,7 @@ router.get('/me', (req, res) => {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(404).json({ error: 'GET /auth/me sadece frontend için yönlendirilir.' });
   }
-  res.redirect('https://notarium.tr/profile');
+  res.redirect(`${FRONTEND_URL}/profile`);
 });
 
 // GET /google - Sadece tarayıcıdan doğrudan erişimde yönlendir
@@ -64,7 +66,7 @@ router.get('/google', (req, res) => {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
     return res.status(404).json({ error: 'GET /auth/google sadece frontend için yönlendirilir.' });
   }
-  res.redirect('https://notarium.tr/auth/login');
+  res.redirect(`${FRONTEND_URL}/auth/login`);
 });
 
 // Google ile giriş başlat

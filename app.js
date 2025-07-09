@@ -38,8 +38,8 @@ app.use(cors({
   origin: [
     'https://notarium.tr',
     'https://www.notarium.tr',
-    'https://frontend.notarium.tr',
-    'https://backend.notarium.tr'
+    'https://notarium.up.railway.app',
+    'https://notarium-backend-production.up.railway.app'
   ],
   credentials: true
 }));
