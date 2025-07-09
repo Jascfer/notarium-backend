@@ -83,7 +83,7 @@ router.post('/login', async (req, res, next) => {
           }
         });
         
-        res.json({ message: 'Giriş başarılı', user });
+        res.json({ message: 'Giriş başarılı', user, sessionId: req.sessionID });
       });
     });
   })(req, res, next);
@@ -97,6 +97,40 @@ router.get('/me', (req, res) => {
   console.log('Auth/me - Is authenticated:', req.isAuthenticated());
   console.log('Auth/me - User:', req.user);
   console.log('Auth/me - Session ID:', req.sessionID);
+  console.log('Auth/me - URL params:', req.query);
+  
+  // URL parametresinden session ID'yi kontrol et
+  const sessionIdFromUrl = req.query.sessionId;
+  if (sessionIdFromUrl) {
+    console.log('Auth/me - Session ID from URL:', sessionIdFromUrl);
+    // Session'ı manuel olarak yükle
+    req.sessionStore.get(sessionIdFromUrl, (err, session) => {
+      if (err) {
+        console.log('Auth/me - Error loading session from URL:', err);
+        return res.status(401).json({ message: 'Oturum bulunamadı.' });
+      }
+      if (session && session.passport && session.passport.user) {
+        console.log('Auth/me - Session loaded from URL, user ID:', session.passport.user);
+        // User'ı yükle
+        const { findUserById } = require('../models/User');
+        findUserById(session.passport.user).then(user => {
+          if (user) {
+            req.user = user;
+            return res.json({ user });
+          } else {
+            return res.status(401).json({ message: 'Kullanıcı bulunamadı.' });
+          }
+        }).catch(err => {
+          console.log('Auth/me - Error finding user from URL session:', err);
+          return res.status(401).json({ message: 'Kullanıcı bulunamadı.' });
+        });
+      } else {
+        console.log('Auth/me - No valid session data found in URL session');
+        return res.status(401).json({ message: 'Oturum bulunamadı.' });
+      }
+    });
+    return;
+  }
   
   // Eğer cookie yoksa ama session ID varsa, session'ı manuel olarak yükle
   if (!req.headers.cookie && req.sessionID) {
