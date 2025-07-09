@@ -87,6 +87,38 @@ router.get('/me', (req, res) => {
   console.log('Auth/me - User:', req.user);
   console.log('Auth/me - Session ID:', req.sessionID);
   
+  // Eğer cookie yoksa ama session ID varsa, session'ı manuel olarak yükle
+  if (!req.headers.cookie && req.sessionID) {
+    console.log('Auth/me - No cookie header, but session ID exists. Attempting to load session manually.');
+    // Session'ı manuel olarak yüklemeyi dene
+    req.sessionStore.get(req.sessionID, (err, session) => {
+      if (err) {
+        console.log('Auth/me - Error loading session:', err);
+        return res.status(401).json({ message: 'Oturum bulunamadı.' });
+      }
+      if (session && session.passport && session.passport.user) {
+        console.log('Auth/me - Session loaded manually, user ID:', session.passport.user);
+        // User'ı yükle
+        const { findUserById } = require('../models/User');
+        findUserById(session.passport.user).then(user => {
+          if (user) {
+            req.user = user;
+            return res.json({ user });
+          } else {
+            return res.status(401).json({ message: 'Kullanıcı bulunamadı.' });
+          }
+        }).catch(err => {
+          console.log('Auth/me - Error finding user:', err);
+          return res.status(401).json({ message: 'Kullanıcı bulunamadı.' });
+        });
+      } else {
+        console.log('Auth/me - No valid session data found');
+        return res.status(401).json({ message: 'Oturum bulunamadı.' });
+      }
+    });
+    return;
+  }
+  
   if (req.isAuthenticated()) {
     res.json({ user: req.user });
   } else {
