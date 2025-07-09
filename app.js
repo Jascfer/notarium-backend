@@ -52,11 +52,11 @@ app.use(session({
     mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555'
   }),
   cookie: {
-    secure: true,
-    sameSite: 'none',
+    secure: true, // Sadece HTTPS üzerinden gönderilsin
+    sameSite: 'lax', // Cross-site isteklerde daha uyumlu, güvenli
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 saat
-    // domain: '.notarium.tr' // KALDIRILDI
+    // domain ayarı eklenmedi, otomatik olarak çalışacak
   }
 }));
 app.use(passport.initialize());
