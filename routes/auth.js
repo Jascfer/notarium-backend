@@ -28,7 +28,15 @@ router.post('/register', async (req, res) => {
 
 // Giriş
 router.post('/login', async (req, res, next) => {
-  console.log('Login attempt:', req.body.email);
+  console.log('Login attempt - Request body:', req.body);
+  console.log('Login attempt - Headers:', req.headers);
+  console.log('Login attempt - Content-Type:', req.headers['content-type']);
+  
+  if (!req.body || !req.body.email || !req.body.password) {
+    console.log('Missing credentials in request body');
+    return res.status(400).json({ message: 'Email ve şifre gereklidir.' });
+  }
+  
   console.log('Session before login:', req.session);
   
   passport.authenticate('local', (err, user, info) => {
