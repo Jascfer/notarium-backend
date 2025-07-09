@@ -73,6 +73,7 @@ router.post('/login', async (req, res, next) => {
 router.get('/me', (req, res) => {
   console.log('Auth/me - Session:', req.session);
   console.log('Auth/me - Cookies:', req.headers.cookie);
+  console.log('Auth/me - All headers:', Object.keys(req.headers));
   console.log('Auth/me - Is authenticated:', req.isAuthenticated());
   console.log('Auth/me - User:', req.user);
   
