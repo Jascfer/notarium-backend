@@ -35,12 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: [
-    'https://notarium.up.railway.app', 
-    'https://notarium-frontend-production.up.railway.app',
-    'https://notarium-backend-production.up.railway.app',
-    'http://localhost:3000'
-  ],
+  origin: ['https://notarium.tr'],
   credentials: true
 }));
 app.use(session({
@@ -49,11 +44,11 @@ app.use(session({
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555' }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true,
+    sameSite: 'lax',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 saat
-    domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined
+    domain: 'notarium.tr'
   }
 }));
 app.use(passport.initialize());
