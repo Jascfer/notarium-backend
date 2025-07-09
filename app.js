@@ -26,7 +26,7 @@ const pgPool = new Pool({
 app.use(session({
   store: new pgSession({
     pool: pgPool,
-    tableName: 'session'
+    tableName: 'sessions'
   }),
   secret: process.env.SESSION_SECRET || 'gizli',
   resave: false,
