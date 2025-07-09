@@ -60,6 +60,7 @@ router.post('/login', async (req, res, next) => {
       console.log('Login: User logged in successfully:', user.id, user.email);
       console.log('Login: Session before save:', req.session);
       console.log('Login: Is authenticated before save:', req.isAuthenticated());
+      console.log('Login: Session ID before save:', req.sessionID);
       
       // Session'ı kaydet
       req.session.save((err) => {
@@ -71,6 +72,16 @@ router.post('/login', async (req, res, next) => {
         console.log('Login: Session saved successfully');
         console.log('Login: Session after save:', req.session);
         console.log('Login: Is authenticated after save:', req.isAuthenticated());
+        console.log('Login: Session ID after save:', req.sessionID);
+        
+        // Session store'da session'ın kaydedilip kaydedilmediğini kontrol et
+        req.sessionStore.get(req.sessionID, (err, session) => {
+          if (err) {
+            console.log('Login: Error checking session in store:', err);
+          } else {
+            console.log('Login: Session in store after save:', session);
+          }
+        });
         
         res.json({ message: 'Giriş başarılı', user });
       });
