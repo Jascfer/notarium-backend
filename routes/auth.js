@@ -28,12 +28,41 @@ router.post('/register', async (req, res) => {
 
 // Giriş
 router.post('/login', async (req, res, next) => {
+  console.log('Login attempt:', req.body.email);
+  console.log('Session before login:', req.session);
+  
   passport.authenticate('local', (err, user, info) => {
-    if (err) return res.status(500).json({ message: 'Giriş sırasında hata oluştu.' });
-    if (!user) return res.status(401).json({ message: info?.message || 'Giriş başarısız.' });
+    if (err) {
+      console.log('Passport error:', err);
+      return res.status(500).json({ message: 'Giriş sırasında hata oluştu.' });
+    }
+    if (!user) {
+      console.log('Login failed:', info?.message);
+      return res.status(401).json({ message: info?.message || 'Giriş başarısız.' });
+    }
+    
+    console.log('User authenticated:', user.id);
     req.login(user, err => {
-      if (err) return res.status(500).json({ message: 'Login hatası.' });
-      res.json({ message: 'Giriş başarılı', user });
+      if (err) {
+        console.log('Login session error:', err);
+        return res.status(500).json({ message: 'Login hatası.' });
+      }
+      
+      console.log('Session after login:', req.session);
+      console.log('User in session:', req.user);
+      
+      // Session'ı kaydet
+      req.session.save((err) => {
+        if (err) {
+          console.log('Session save error:', err);
+          return res.status(500).json({ message: 'Session kaydetme hatası.' });
+        }
+        
+        console.log('Session saved successfully');
+        console.log('Response headers:', res.getHeaders());
+        
+        res.json({ message: 'Giriş başarılı', user });
+      });
     });
   })(req, res, next);
 });
