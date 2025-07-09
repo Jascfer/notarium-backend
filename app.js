@@ -10,7 +10,9 @@ const { Pool } = require('pg');
 const app = express();
 const allowedOrigins = [
   'https://notarium.up.railway.app',
-  'https://www.notarium.up.railway.app'
+  'https://www.notarium.up.railway.app',
+  'https://notarium.tr',
+  'https://www.notarium.tr'
 ];
 
 app.use(cors({
@@ -53,6 +55,10 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000 // 24 saat
   }
 }));
+
+// AUTH ROUTE EKLENDİ
+const authRoutes = require('./routes/auth');
+app.use('/auth', authRoutes);
 
 // Bellekte kanal bazlı mesajlar
 const channelMessages = {
