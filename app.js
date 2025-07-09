@@ -12,13 +12,16 @@ const allowedOrigins = [
   'https://notarium.up.railway.app',
   'https://www.notarium.up.railway.app',
   'https://notarium.tr',
-  'https://www.notarium.tr'
+  'https://www.notarium.tr',
+  'http://localhost:3000',
+  'http://localhost:4000',
+  'http://localhost:8080'
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin) return callback(null, true); // Origin yoksa izin ver
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
       return callback(new Error('Not allowed by CORS'));
