@@ -18,6 +18,9 @@ const allowedOrigins = [
   'http://localhost:8080'
 ];
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true); // Origin yoksa izin ver
