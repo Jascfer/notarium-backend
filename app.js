@@ -52,11 +52,11 @@ app.use(session({
     mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555'
   }),
   cookie: {
-    secure: true, // Sadece HTTPS üzerinden gönderilsin
-    sameSite: 'lax', // Cross-site isteklerde daha uyumlu, güvenli
+    secure: true,
+    sameSite: 'none',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 saat
-    // domain ayarı eklenmedi, otomatik olarak çalışacak
+    // domain ayarı eklenmedi
   }
 }));
 app.use(passport.initialize());
