@@ -18,7 +18,8 @@ const allowedOrigins = [
   'http://localhost:8080',
   // Cloudflare Worker preview domains
   'https://*.preview.devprod.cloudflare.dev',
-  'https://*.workers.dev'
+  'https://*.workers.dev',
+  'https://799d8575-035b-4ccc-88ac-60fc1d1a1135.preview.devprod.cloudflare.dev'
 ];
 
 app.use(express.json());
