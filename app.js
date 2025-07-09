@@ -38,11 +38,14 @@ app.use(cors({
   origin: ['https://notarium.tr'],
   credentials: true
 }));
+console.log('Session store için kullanılacak mongoUrl:', process.env.MONGODB_URI);
 app.use(session({
   secret: process.env.SESSION_SECRET || 'gizli',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555'
+  }),
   cookie: {
     secure: true,
     sameSite: 'none',
