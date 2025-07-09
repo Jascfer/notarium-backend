@@ -15,7 +15,10 @@ const allowedOrigins = [
   'https://www.notarium.tr',
   'http://localhost:3000',
   'http://localhost:4000',
-  'http://localhost:8080'
+  'http://localhost:8080',
+  // Cloudflare Worker preview domains
+  'https://*.preview.devprod.cloudflare.dev',
+  'https://*.workers.dev'
 ];
 
 app.use(express.json());
@@ -24,6 +27,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true); // Origin yoksa izin ver
+    
+    // Cloudflare Worker preview domains için wildcard kontrol
+    if (origin.includes('preview.devprod.cloudflare.dev') || origin.includes('workers.dev')) {
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
