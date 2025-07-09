@@ -35,7 +35,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-  origin: ['https://notarium.tr'],
+  origin: [
+    'https://notarium.tr',
+    'https://www.notarium.tr',
+    'https://frontend.notarium.tr',
+    'https://backend.notarium.tr'
+  ],
   credentials: true
 }));
 console.log('Session store için kullanılacak mongoUrl:', process.env.MONGODB_URI);
@@ -50,7 +55,8 @@ app.use(session({
     secure: true,
     sameSite: 'none',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 saat
+    maxAge: 24 * 60 * 60 * 1000, // 24 saat
+    domain: '.notarium.tr'
   }
 }));
 app.use(passport.initialize());
