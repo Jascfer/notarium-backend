@@ -45,10 +45,10 @@ app.use(session({
   store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555' }),
   cookie: {
     secure: true,
-    sameSite: 'lax',
+    sameSite: 'none',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 saat
-    domain: 'notarium.tr'
+    maxAge: 24 * 60 * 60 * 1000 // 24 saat
+    // domain: 'notarium.tr' // KALDIRILDI
   }
 }));
 app.use(passport.initialize());
