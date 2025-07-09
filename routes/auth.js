@@ -171,4 +171,27 @@ router.get('/me', (req, res) => {
   }
 });
 
+// Çıkış
+router.post('/logout', (req, res) => {
+  console.log('Auth/logout - Logging out user:', req.user);
+  
+  req.logout((err) => {
+    if (err) {
+      console.log('Auth/logout - Error during logout:', err);
+      return res.status(500).json({ message: 'Çıkış sırasında hata oluştu.' });
+    }
+    
+    // Session'ı yok et
+    req.session.destroy((err) => {
+      if (err) {
+        console.log('Auth/logout - Error destroying session:', err);
+        return res.status(500).json({ message: 'Session yok edilirken hata oluştu.' });
+      }
+      
+      console.log('Auth/logout - User logged out successfully');
+      res.json({ message: 'Başarıyla çıkış yapıldı.' });
+    });
+  });
+});
+
 module.exports = router;
