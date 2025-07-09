@@ -69,22 +69,6 @@ router.get('/google', (req, res) => {
   res.redirect(`${FRONTEND_URL}/auth/login`);
 });
 
-// Google ile giriş başlat
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-// Google callback
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login', session: true }),
-  (req, res) => {
-    // Başarılı girişten sonra frontend'e yönlendir
-    console.log('Google login sonrası req.user:', req.user);
-    console.log('Google login sonrası session:', req.session);
-    req.session.save(() => {
-      res.redirect(process.env.CLIENT_URL || '/');
-    });
-  }
-);
-
 // Klasik giriş
 router.post('/login', async (req, res) => {
   try {
