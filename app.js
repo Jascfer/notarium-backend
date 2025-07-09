@@ -42,13 +42,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'gizli',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555' }),
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
   cookie: {
     secure: true,
     sameSite: 'none',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 saat
-    // domain: 'notarium.tr' // KALDIRILDI
   }
 }));
 app.use(passport.initialize());
