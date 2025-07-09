@@ -38,8 +38,7 @@ app.use(cors({
   origin: [
     'https://notarium.tr',
     'https://www.notarium.tr',
-    'https://notarium.up.railway.app',
-    'https://notarium-backend-production.up.railway.app'
+    'https://notarium.up.railway.app'
   ],
   credentials: true
 }));
@@ -49,7 +48,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:YvFJGbyNxePZwHwdgsgBvObpeRVpdhkr@shuttle.proxy.rlwy.net:14555'
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/notarium'
   }),
   cookie: {
     secure: true,
