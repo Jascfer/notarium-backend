@@ -8,12 +8,22 @@ passport.use(new LocalStrategy({
   usernameField: 'email'
 }, async (email, password, done) => {
   try {
+    console.log('Passport: Attempting login for email:', email);
     const user = await findUserByEmail(email);
-    if (!user) return done(null, false, { message: 'Kullanıcı bulunamadı.' });
+    if (!user) {
+      console.log('Passport: User not found for email:', email);
+      return done(null, false, { message: 'Kullanıcı bulunamadı.' });
+    }
+    console.log('Passport: User found:', user.id, user.email);
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return done(null, false, { message: 'Şifre yanlış.' });
+    if (!match) {
+      console.log('Passport: Password mismatch for user:', user.email);
+      return done(null, false, { message: 'Şifre yanlış.' });
+    }
+    console.log('Passport: Authentication successful for user:', user.email);
     return done(null, user);
   } catch (err) {
+    console.log('Passport: Error during authentication:', err);
     return done(err);
   }
 }));
