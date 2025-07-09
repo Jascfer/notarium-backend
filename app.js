@@ -3,6 +3,9 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const { Server } = require('socket.io');
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
+const { Pool } = require('pg');
 
 const app = express();
 app.use(cors());
@@ -14,6 +17,27 @@ const io = new Server(server, {
     methods: ['GET', 'POST']
   }
 });
+
+const pgPool = new Pool({
+  connectionString: process.env.POSTGRES_URL || 'postgresql://postgres:eAnTWVlXpaiFluEOPgwGXVHIyNEsMZJI@postgres.railway.internal:5432/railway',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+app.use(session({
+  store: new pgSession({
+    pool: pgPool,
+    tableName: 'session'
+  }),
+  secret: process.env.SESSION_SECRET || 'gizli',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: true,
+    sameSite: 'none',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 saat
+  }
+}));
 
 // Bellekte kanal bazlı mesajlar
 const channelMessages = {
