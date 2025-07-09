@@ -56,6 +56,12 @@ app.use(session({
   }
 }));
 
+// PASSPORT CONFIG EKLENDİ
+require('./config/passport');
+const passport = require('passport');
+app.use(passport.initialize());
+app.use(passport.session());
+
 // AUTH ROUTE EKLENDİ
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);

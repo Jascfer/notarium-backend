@@ -1,6 +1,22 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User');
+const LocalStrategy = require('passport-local').Strategy;
+const { findUserByEmail, findUserById, createUser } = require('../models/User');
+const bcrypt = require('bcryptjs');
+
+passport.use(new LocalStrategy({
+  usernameField: 'email'
+}, async (email, password, done) => {
+  try {
+    const user = await findUserByEmail(email);
+    if (!user) return done(null, false, { message: 'Kullanıcı bulunamadı.' });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return done(null, false, { message: 'Şifre yanlış.' });
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -11,17 +27,13 @@ passport.use(new GoogleStrategy({
     try {
       const [firstName, ...lastNameArr] = profile.displayName.split(' ');
       const lastName = lastNameArr.join(' ');
-      const nameTaken = await User.findOne({ firstName, lastName });
-      if (nameTaken && nameTaken.googleId !== profile.id) {
-        return done(null, false, { message: "Bu isim ve soyisim zaten alınmış." });
-      }
-      let user = await User.findOne({ googleId: profile.id });
+      let user = await findUserByEmail(profile.emails[0].value);
       if (!user) {
-        user = await User.create({
-          googleId: profile.id,
+        user = await createUser({
           firstName,
           lastName,
-          email: profile.emails[0].value
+          email: profile.emails[0].value,
+          google_id: profile.id
         });
       }
       return done(null, user);
@@ -33,7 +45,11 @@ passport.use(new GoogleStrategy({
 
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
-  const user = await User.findById(id);
-  done(null, user);
+  try {
+    const user = await findUserById(id);
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
 });
 // Do not export anything from this file! 
