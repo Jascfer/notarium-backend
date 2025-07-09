@@ -27,6 +27,31 @@ router.get('/test', (req, res) => {
   });
 });
 
+// GET /login - Tarayıcıdan doğrudan erişimde frontend login sayfasına yönlendir
+router.get('/login', (req, res) => {
+  res.redirect('https://notarium.tr/auth/login');
+});
+
+// GET /register - Tarayıcıdan doğrudan erişimde frontend register sayfasına yönlendir
+router.get('/register', (req, res) => {
+  res.redirect('https://notarium.tr/auth/register');
+});
+
+// GET /logout - Tarayıcıdan doğrudan erişimde frontend ana sayfasına yönlendir
+router.get('/logout', (req, res) => {
+  res.redirect('https://notarium.tr');
+});
+
+// GET /me - Tarayıcıdan doğrudan erişimde frontend profil sayfasına yönlendir
+router.get('/me', (req, res) => {
+  res.redirect('https://notarium.tr/profile');
+});
+
+// GET /google - Tarayıcıdan doğrudan erişimde frontend Google login sayfasına yönlendir
+router.get('/google', (req, res) => {
+  res.redirect('https://notarium.tr/auth/login');
+});
+
 // Google ile giriş başlat
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
