@@ -57,11 +57,20 @@ router.post('/login', async (req, res, next) => {
         return res.status(500).json({ message: 'Login hatası.' });
       }
       
+      console.log('Login: User logged in successfully:', user.id, user.email);
+      console.log('Login: Session before save:', req.session);
+      console.log('Login: Is authenticated before save:', req.isAuthenticated());
+      
       // Session'ı kaydet
       req.session.save((err) => {
         if (err) {
+          console.log('Login: Session save error:', err);
           return res.status(500).json({ message: 'Session kaydetme hatası.' });
         }
+        
+        console.log('Login: Session saved successfully');
+        console.log('Login: Session after save:', req.session);
+        console.log('Login: Is authenticated after save:', req.isAuthenticated());
         
         res.json({ message: 'Giriş başarılı', user });
       });
