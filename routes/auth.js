@@ -99,6 +99,22 @@ router.get('/me', (req, res) => {
   console.log('Auth/me - Session ID:', req.sessionID);
   console.log('Auth/me - URL params:', req.query);
   
+  // Cookie header'ını kontrol et
+  const cookieHeader = req.headers.cookie;
+  console.log('Auth/me - Raw cookie header:', cookieHeader);
+  
+  if (cookieHeader) {
+    // Cookie'den session ID'yi çıkar
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+    
+    console.log('Auth/me - Parsed cookies:', cookies);
+    console.log('Auth/me - Session cookie value:', cookies['connect.sid']);
+  }
+  
   // URL parametresinden session ID'yi kontrol et
   const sessionIdFromUrl = req.query.sessionId;
   if (sessionIdFromUrl) {
@@ -109,6 +125,7 @@ router.get('/me', (req, res) => {
         console.log('Auth/me - Error loading session from URL:', err);
         return res.status(401).json({ message: 'Oturum bulunamadı.' });
       }
+      console.log('Auth/me - Session loaded from URL:', session);
       if (session && session.passport && session.passport.user) {
         console.log('Auth/me - Session loaded from URL, user ID:', session.passport.user);
         // User'ı yükle
@@ -141,6 +158,7 @@ router.get('/me', (req, res) => {
         console.log('Auth/me - Error loading session:', err);
         return res.status(401).json({ message: 'Oturum bulunamadı.' });
       }
+      console.log('Auth/me - Session loaded manually:', session);
       if (session && session.passport && session.passport.user) {
         console.log('Auth/me - Session loaded manually, user ID:', session.passport.user);
         // User'ı yükle

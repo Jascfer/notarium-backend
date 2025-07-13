@@ -6,6 +6,10 @@ const { Server } = require('socket.io');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');
+const cookieParser = require('cookie-parser');
+
+// Environment variables
+require('dotenv').config();
 
 const app = express();
 const allowedOrigins = [
@@ -24,6 +28,9 @@ const allowedOrigins = [
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Cookie parser middleware'ini ekle
+app.use(cookieParser());
 
 // CORS middleware'ini session'dan önce ekle
 app.use(cors({
@@ -54,7 +61,8 @@ app.options('*', cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: 'https://notarium.tr',
+    credentials: true,
     methods: ['GET', 'POST']
   }
 });
@@ -64,19 +72,27 @@ const pgPool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Environment kontrolü
+const isProduction = process.env.NODE_ENV === 'production';
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Is Production:', isProduction);
+console.log('Session Secret:', process.env.SESSION_SECRET ? 'Set' : 'Not Set');
+
 app.use(session({
   store: new pgSession({
     pool: pgPool,
     tableName: 'sessions'
   }),
-  secret: process.env.SESSION_SECRET || 'gizli',
+  secret: process.env.SESSION_SECRET || 'gizli-session-secret-key',
   resave: false,
   saveUninitialized: false,
+  name: 'connect.sid', // Session cookie adını belirt
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: isProduction, // Sadece production'da true
+    sameSite: isProduction ? 'none' : 'lax', // Production'da none, development'ta lax
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 saat
+    path: '/',
     // domain: '.notarium.tr' // Bu satırı kaldırıyoruz
   }
 }));
