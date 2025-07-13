@@ -25,6 +25,7 @@ const allowedOrigins = [
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// CORS middleware'ini session'dan önce ekle
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin) return callback(null, true); // Origin yoksa izin ver
@@ -43,8 +44,12 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie']
 }));
+
+// OPTIONS isteklerini handle et
+app.options('*', cors());
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -68,11 +73,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 saat
-    domain: '.notarium.tr'
+    // domain: '.notarium.tr' // Bu satırı kaldırıyoruz
   }
 }));
 

@@ -164,9 +164,12 @@ router.get('/me', (req, res) => {
     return;
   }
   
-  if (req.isAuthenticated()) {
+  // Normal authentication kontrolü
+  if (req.isAuthenticated() && req.user) {
+    console.log('Auth/me - User authenticated normally:', req.user);
     res.json({ user: req.user });
   } else {
+    console.log('Auth/me - User not authenticated');
     res.status(401).json({ message: 'Oturum bulunamadı.' });
   }
 });
@@ -174,6 +177,41 @@ router.get('/me', (req, res) => {
 // Çıkış
 router.post('/logout', (req, res) => {
   console.log('Auth/logout - Logging out user:', req.user);
+  console.log('Auth/logout - URL params:', req.query);
+  console.log('Auth/logout - Session ID from URL:', req.query.sessionId);
+  console.log('Auth/logout - Current session ID:', req.sessionID);
+  console.log('Auth/logout - Cookies:', req.headers.cookie);
+  
+  // URL parametresinden session ID'yi kontrol et
+  const sessionIdFromUrl = req.query.sessionId;
+  if (sessionIdFromUrl) {
+    console.log('Auth/logout - Processing logout with session ID from URL:', sessionIdFromUrl);
+    // Session'ı manuel olarak yükle ve yok et
+    req.sessionStore.get(sessionIdFromUrl, (err, session) => {
+      if (err) {
+        console.log('Auth/logout - Error loading session from URL:', err);
+        return res.status(500).json({ message: 'Session yüklenirken hata oluştu.' });
+      }
+      console.log('Auth/logout - Session loaded from URL:', session);
+      if (session && session.passport && session.passport.user) {
+        console.log('Auth/logout - Session loaded from URL, user ID:', session.passport.user);
+        // Session'ı yok et
+        req.sessionStore.destroy(sessionIdFromUrl, (err) => {
+          if (err) {
+            console.log('Auth/logout - Error destroying session from URL:', err);
+            return res.status(500).json({ message: 'Session yok edilirken hata oluştu.' });
+          }
+          console.log('Auth/logout - User logged out successfully (URL session)');
+          res.json({ message: 'Başarıyla çıkış yapıldı.' });
+        });
+      } else {
+        console.log('Auth/logout - No valid session data found in URL session');
+        // Session yoksa bile başarılı olarak döndür
+        res.json({ message: 'Başarıyla çıkış yapıldı.' });
+      }
+    });
+    return;
+  }
   
   // Eğer req.user yoksa ama session ID varsa, session'ı manuel olarak yükle
   if (!req.user && req.sessionID) {
@@ -183,6 +221,7 @@ router.post('/logout', (req, res) => {
         console.log('Auth/logout - Error loading session:', err);
         return res.status(500).json({ message: 'Session yüklenirken hata oluştu.' });
       }
+      console.log('Auth/logout - Session loaded manually:', session);
       if (session && session.passport && session.passport.user) {
         console.log('Auth/logout - Session loaded manually, user ID:', session.passport.user);
         // Session'ı yok et
@@ -202,6 +241,7 @@ router.post('/logout', (req, res) => {
     return;
   }
   
+  // Normal logout işlemi
   req.logout((err) => {
     if (err) {
       console.log('Auth/logout - Error during logout:', err);
