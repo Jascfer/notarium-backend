@@ -34,8 +34,8 @@ function authenticateJWT(req, res, next) {
   }
 }
 
-// Kayıt
-router.post('/register', async (req, res) => {
+// Kayıt (Session + Passport)
+router.post('/register', async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body;
     if (!firstName || !lastName || !email || !password) {
@@ -47,22 +47,25 @@ router.post('/register', async (req, res) => {
     }
     const hashed = await bcrypt.hash(password, 10);
     const user = await createUser({ firstName, lastName, email, password: hashed });
-    const token = generateToken(user);
-    res.status(201).json({ message: 'Kayıt başarılı', user: {
-      id: user.id,
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      role: user.role,
-      createdAt: user.created_at
-    }, token });
+    req.login(user, (err) => {
+      if (err) return next(err);
+      // Session/cookie ile döndür
+      return res.status(201).json({ message: 'Kayıt başarılı', user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: user.role,
+        createdAt: user.created_at
+      }});
+    });
   } catch (err) {
     res.status(500).json({ message: 'Kayıt sırasında hata oluştu.', error: err.message });
   }
 });
 
-// Giriş
-router.post('/login', async (req, res) => {
+// Giriş (Session + Passport)
+router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -76,28 +79,29 @@ router.post('/login', async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Şifre yanlış.' });
     }
-    const token = generateToken(user);
-    res.json({ message: 'Giriş başarılı', user: {
-      id: user.id,
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      role: user.role,
-      createdAt: user.created_at
-    }, token });
+    req.login(user, (err) => {
+      if (err) return next(err);
+      // Session/cookie ile döndür
+      return res.json({ message: 'Giriş başarılı', user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: user.role,
+        createdAt: user.created_at
+      }});
+    });
   } catch (err) {
     res.status(500).json({ message: 'Giriş sırasında hata oluştu.', error: err.message });
   }
 });
 
-// Mevcut kullanıcı bilgisini getir (korumalı)
-router.get('/me', authenticateJWT, async (req, res) => {
-  try {
-    // Token'dan gelen user bilgisi
-    res.json({ user: req.user });
-  } catch (err) {
-    res.status(500).json({ message: 'Kullanıcı bilgisi alınamadı.', error: err.message });
+// Mevcut kullanıcı bilgisini getir (Session/cookie tabanlı)
+router.get('/me', (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: 'Giriş gerekli' });
   }
+  res.json({ user: req.user });
 });
 
 module.exports = router;
