@@ -19,6 +19,7 @@
     "oauth": "^0.10.2",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
     "passport-oauth2": "^1.8.0",
     "passport-strategy": "^1.0.0",
     "pause": "^0.1.0",

@@ -40,11 +40,44 @@ router.post('/login', async (req, res, next) => {
 
 // Mevcut kullanıcı bilgisini getir
 router.get('/me', (req, res) => {
+  console.log('Auth/me endpoint called');
+  console.log('Session:', req.session);
+  console.log('User:', req.user);
+  console.log('Is Authenticated:', req.isAuthenticated());
+  
   if (req.isAuthenticated()) {
-    res.json({ user: req.user });
+    res.json({ 
+      user: req.user,
+      sessionId: req.sessionID,
+      authenticated: true 
+    });
   } else {
-    res.status(401).json({ message: 'Oturum bulunamadı.' });
+    res.status(401).json({ 
+      message: 'Oturum bulunamadı.',
+      authenticated: false,
+      sessionId: req.sessionID
+    });
   }
+});
+
+// Çıkış
+router.post('/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Çıkış sırasında hata oluştu.' });
+    }
+    res.json({ message: 'Çıkış başarılı' });
+  });
+});
+
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Auth route çalışıyor',
+    session: req.session,
+    user: req.user,
+    isAuthenticated: req.isAuthenticated()
+  });
 });
 
 module.exports = router;
