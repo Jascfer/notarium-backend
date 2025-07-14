@@ -41,12 +41,13 @@ router.post('/register', async (req, res, next) => {
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({ message: 'Tüm alanlar gereklidir.' });
     }
-    const existing = await findUserByEmail(email);
+    const normalizedEmail = email.toLowerCase();
+    const existing = await findUserByEmail(normalizedEmail);
     if (existing) {
       return res.status(400).json({ message: 'Bu e-posta zaten kayıtlı.' });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const user = await createUser({ firstName, lastName, email, password: hashed });
+    const user = await createUser({ firstName, lastName, email: normalizedEmail, password: hashed });
     req.login(user, (err) => {
       if (err) return next(err);
       // Session/cookie ile döndür
@@ -71,7 +72,8 @@ router.post('/login', async (req, res, next) => {
     if (!email || !password) {
       return res.status(400).json({ message: 'E-posta ve şifre gereklidir.' });
     }
-    const user = await findUserByEmail(email);
+    const normalizedEmail = email.toLowerCase();
+    const user = await findUserByEmail(normalizedEmail);
     if (!user) {
       return res.status(401).json({ message: 'Kullanıcı bulunamadı.' });
     }
