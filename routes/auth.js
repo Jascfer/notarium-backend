@@ -1,111 +1,101 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const passport = require('passport');
+const jwt = require('jsonwebtoken');
 const { createUser, findUserByEmail, findUserById } = require('../models/User');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key';
+const JWT_EXPIRES_IN = '7d';
+
+// JWT oluşturucu
+function generateToken(user) {
+  return jwt.sign({
+    id: user.id,
+    email: user.email,
+    firstName: user.first_name,
+    lastName: user.last_name,
+    role: user.role
+  }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+// JWT doğrulama middleware'i
+function authenticateJWT(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Token gerekli' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Geçersiz veya süresi dolmuş token' });
+  }
+}
 
 // Kayıt
 router.post('/register', async (req, res) => {
-  console.log('[REGISTER] Body:', req.body);
-  console.log('[REGISTER] Session:', req.session);
   try {
     const { firstName, lastName, email, password } = req.body;
     if (!firstName || !lastName || !email || !password) {
-      console.error('[REGISTER] Eksik alan:', { firstName, lastName, email, password });
       return res.status(400).json({ message: 'Tüm alanlar gereklidir.' });
     }
     const existing = await findUserByEmail(email);
     if (existing) {
-      console.error('[REGISTER] E-posta zaten kayıtlı:', email);
       return res.status(400).json({ message: 'Bu e-posta zaten kayıtlı.' });
     }
     const hashed = await bcrypt.hash(password, 10);
     const user = await createUser({ firstName, lastName, email, password: hashed });
-    req.login(user, err => {
-      if (err) {
-        console.error('[REGISTER] Login hatası:', err);
-        return res.status(500).json({ message: 'Login hatası.' });
-      }
-      console.log('[REGISTER] Kayıt başarılı, user:', user);
-      res.status(201).json({ message: 'Kayıt başarılı', user });
-    });
+    const token = generateToken(user);
+    res.status(201).json({ message: 'Kayıt başarılı', user: {
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      role: user.role
+    }, token });
   } catch (err) {
-    console.error('[REGISTER] Kayıt sırasında hata:', err.stack || err);
     res.status(500).json({ message: 'Kayıt sırasında hata oluştu.', error: err.message });
   }
 });
 
 // Giriş
-router.post('/login', async (req, res, next) => {
-  console.log('[LOGIN] Body:', req.body);
-  console.log('[LOGIN] Session:', req.session);
-  passport.authenticate('local', (err, user, info) => {
-    if (err) {
-      console.error('[LOGIN] Giriş sırasında hata:', err.stack || err);
-      return res.status(500).json({ message: 'Giriş sırasında hata oluştu.' });
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'E-posta ve şifre gereklidir.' });
     }
+    const user = await findUserByEmail(email);
     if (!user) {
-      console.error('[LOGIN] Kullanıcı bulunamadı veya şifre yanlış:', info);
-      return res.status(401).json({ message: info?.message || 'Giriş başarısız.' });
+      return res.status(401).json({ message: 'Kullanıcı bulunamadı.' });
     }
-    req.login(user, err => {
-      if (err) {
-        console.error('[LOGIN] Login hatası:', err);
-        return res.status(500).json({ message: 'Login hatası.' });
-      }
-      console.log('[LOGIN] Giriş başarılı, user:', user);
-      res.json({ message: 'Giriş başarılı', user });
-    });
-  })(req, res, next);
-});
-
-// Mevcut kullanıcı bilgisini getir
-router.get('/me', (req, res) => {
-  console.log('[ME] Session:', req.session);
-  console.log('[ME] User:', req.user);
-  console.log('[ME] Cookies:', req.cookies);
-  console.log('[ME] Is Authenticated:', req.isAuthenticated?.());
-  if (req.isAuthenticated()) {
-    console.log('[ME] Authenticated user:', req.user);
-    res.json({ 
-      user: req.user,
-      sessionId: req.sessionID,
-      authenticated: true 
-    });
-  } else {
-    console.error('[ME] Oturum bulunamadı veya kullanıcı login değil.');
-    res.status(401).json({ 
-      message: 'Oturum bulunamadı.',
-      authenticated: false,
-      sessionId: req.sessionID
-    });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Şifre yanlış.' });
+    }
+    const token = generateToken(user);
+    res.json({ message: 'Giriş başarılı', user: {
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      role: user.role
+    }, token });
+  } catch (err) {
+    res.status(500).json({ message: 'Giriş sırasında hata oluştu.', error: err.message });
   }
 });
 
-// Çıkış
-router.post('/logout', (req, res) => {
-  console.log('[LOGOUT] User:', req.user);
-  req.logout((err) => {
-    if (err) {
-      console.error('[LOGOUT] Çıkış sırasında hata:', err.stack || err);
-      return res.status(500).json({ message: 'Çıkış sırasında hata oluştu.' });
-    }
-    console.log('[LOGOUT] Çıkış başarılı');
-    res.json({ message: 'Çıkış başarılı' });
-  });
-});
-
-// Test endpoint
-router.get('/test', (req, res) => {
-  console.log('[TEST] Session:', req.session);
-  console.log('[TEST] User:', req.user);
-  console.log('[TEST] Is Authenticated:', req.isAuthenticated?.());
-  res.json({ 
-    message: 'Auth route çalışıyor',
-    session: req.session,
-    user: req.user,
-    isAuthenticated: req.isAuthenticated()
-  });
+// Mevcut kullanıcı bilgisini getir (korumalı)
+router.get('/me', authenticateJWT, async (req, res) => {
+  try {
+    // Token'dan gelen user bilgisi
+    res.json({ user: req.user });
+  } catch (err) {
+    res.status(500).json({ message: 'Kullanıcı bilgisi alınamadı.', error: err.message });
+  }
 });
 
 module.exports = router;
