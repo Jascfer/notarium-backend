@@ -91,7 +91,7 @@ if (config.isProduction) {
 
 // Routes
 const authRoutes = require('./routes/auth');
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
