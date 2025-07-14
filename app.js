@@ -32,15 +32,18 @@ app.use(express.urlencoded({ extended: true }));
 // Cookie parser middleware'ini ekle
 app.use(cookieParser());
 
-// CORS middleware'ini session'dan önce ekle
+// CORS middleware - daha güvenli konfigürasyon
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // Origin yoksa izin ver
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
     
-    // Cloudflare Worker preview domains için wildcard kontrol
-    if (origin.includes('preview.devprod.cloudflare.dev') || origin.includes('workers.dev')) {
-      return callback(null, true);
-    }
+    const allowedOrigins = [
+      'https://notarium.tr',
+      'https://www.notarium.tr',
+      'http://localhost:3000',
+      // Add your actual frontend domain
+    ];
     
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
@@ -51,8 +54,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
-  exposedHeaders: ['Set-Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
 // OPTIONS isteklerini handle et
@@ -106,6 +108,16 @@ app.use(passport.session());
 // AUTH ROUTE EKLENDİ
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
+
+// Test endpoint for database connection
+app.get('/test-db', async (req, res) => {
+  try {
+    const result = await pgPool.query('SELECT NOW()');
+    res.json({ success: true, time: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // Bellekte kanal bazlı mesajlar
 const channelMessages = {
