@@ -276,6 +276,28 @@ io.on('connection', (socket) => {
   });
 });
 
+// Detaylı log middleware'i (tüm istekler için)
+app.use((req, res, next) => {
+  // favicon.ico isteği ise özel log
+  if (req.originalUrl === '/favicon.ico') {
+    console.log('[FAVICON] Favicon isteği geldi.');
+    return res.status(404).end();
+  }
+  // Diğer tüm istekler için detaylı log
+  console.log('--- [REQUEST LOG] ---');
+  console.log('Time:', new Date().toISOString());
+  console.log('Method:', req.method);
+  console.log('URL:', req.originalUrl);
+  console.log('Headers:', req.headers);
+  console.log('Cookies:', req.cookies);
+  console.log('Session:', req.session);
+  console.log('User:', req.user);
+  console.log('Query:', req.query);
+  console.log('Body:', req.body);
+  console.log('---------------------');
+  next();
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
