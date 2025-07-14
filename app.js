@@ -12,46 +12,10 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
-const allowedOrigins = [
-  'https://notarium.up.railway.app',
-  'https://www.notarium.up.railway.app',
-  'https://notarium.tr',
-  'https://www.notarium.tr',
-  'http://localhost:3000',
-  'http://localhost:4000',
-  'http://localhost:8080',
-  // Cloudflare Worker preview domains
-  'https://*.preview.devprod.cloudflare.dev',
-  'https://*.workers.dev',
-  'https://799d8575-035b-4ccc-88ac-60fc1d1a1135.preview.devprod.cloudflare.dev'
-];
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Cookie parser middleware'ini ekle
-app.use(cookieParser());
-
-// CORS middleware - daha güvenli konfigürasyon
+// CORS middleware'ini EN BAŞA taşı
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'https://notarium.tr',
-      'https://www.notarium.tr',
-      'http://localhost:3000',
-      // Add your actual frontend domain
-    ];
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: ['https://notarium.tr', 'https://www.notarium.tr', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
@@ -60,10 +24,16 @@ app.use(cors({
 // OPTIONS isteklerini handle et
 app.options('*', cors());
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Cookie parser middleware'ini ekle
+app.use(cookieParser());
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://notarium.tr',
+    origin: ['https://notarium.tr', 'https://www.notarium.tr'],
     credentials: true,
     methods: ['GET', 'POST']
   }
