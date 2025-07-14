@@ -69,11 +69,13 @@ router.post('/register', async (req, res, next) => {
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log('Gelen login isteği:', email);
     if (!email || !password) {
       return res.status(400).json({ message: 'E-posta ve şifre gereklidir.' });
     }
     const normalizedEmail = email.toLowerCase();
     const user = await findUserByEmail(normalizedEmail);
+    console.log('DB\'den dönen user:', user);
     if (!user) {
       return res.status(401).json({ message: 'Kullanıcı bulunamadı.' });
     }
