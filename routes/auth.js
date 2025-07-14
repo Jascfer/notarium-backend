@@ -53,7 +53,8 @@ router.post('/register', async (req, res) => {
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
-      role: user.role
+      role: user.role,
+      createdAt: user.created_at
     }, token });
   } catch (err) {
     res.status(500).json({ message: 'Kayıt sırasında hata oluştu.', error: err.message });
@@ -81,7 +82,8 @@ router.post('/login', async (req, res) => {
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
-      role: user.role
+      role: user.role,
+      createdAt: user.created_at
     }, token });
   } catch (err) {
     res.status(500).json({ message: 'Giriş sırasında hata oluştu.', error: err.message });
