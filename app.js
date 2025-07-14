@@ -76,7 +76,17 @@ const sessionConfig = {
   proxy: config.isProduction // Railway proxy kullanıyor
 };
 
-app.use(session(sessionConfig));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    domain: '.notarium.tr',
+    secure: true,
+    httpOnly: true,
+    sameSite: 'none'
+  }
+}));
 
 // Passport configuration
 require('./config/passport');
