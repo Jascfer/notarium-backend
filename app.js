@@ -21,19 +21,13 @@ const pgPool = new Pool({
   ssl: config.isProduction ? { rejectUnauthorized: false } : false
 });
 
-// CORS Configuration - EN BAŞTA
+// CORS Configuration - Cloudflare için optimize edildi
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, etc.)
     if (!origin) return callback(null, true);
     
-    const allowedOrigins = config.getAllowedOrigins();
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (allowedOrigin.includes('*')) {
-        return origin.includes(allowedOrigin.replace('*', ''));
-      }
-      return origin === allowedOrigin;
-    });
+    const isAllowed = config.isOriginAllowed(origin);
     
     if (isAllowed) {
       return callback(null, true);
@@ -42,7 +36,7 @@ const corsOptions = {
       return callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
+  credentials: true, // Cloudflare için kritik
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
   exposedHeaders: ['Set-Cookie']
@@ -60,7 +54,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Cookie parser
 app.use(cookieParser());
 
-// Session configuration
+// Session configuration - Cloudflare için optimize edildi
 const sessionConfig = {
   store: new pgSession({
     pool: pgPool,
@@ -72,10 +66,10 @@ const sessionConfig = {
   saveUninitialized: false,
   name: 'connect.sid',
   cookie: {
-    secure: config.COOKIE_SECURE,
-    sameSite: config.COOKIE_SAME_SITE,
+    secure: config.COOKIE_SECURE, // Railway & Cloudflare => HTTPS
+    sameSite: config.COOKIE_SAME_SITE, // Cross-domain cookie için 'none'
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 saat
+    maxAge: config.COOKIE_MAX_AGE, // 1 gün (rehberdeki öneri)
     path: '/',
     domain: config.isProduction ? config.COOKIE_DOMAIN : undefined
   },
