@@ -77,14 +77,16 @@ const sessionConfig = {
 };
 
 app.use(session({
+  name: 'connect.sid',
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    domain: '.notarium.tr',
-    secure: true,
+    domain: '.notarium.tr',     // ✅ Önemli
+    secure: true,               // ✅ HTTPS için gerekli
     httpOnly: true,
-    sameSite: 'none'
+    sameSite: 'none',           // ✅ Cross-origin için "none" olmalı
+    maxAge: 1000 * 60 * 60 * 24 * 7
   }
 }));
 
