@@ -14,7 +14,12 @@ async function createNote({ title, subject, author, description, tags, driveLink
 }
 
 async function getNotes() {
-  const result = await pool.query('SELECT * FROM notes ORDER BY id DESC');
+  const result = await pool.query(`
+    SELECT notes.*, users.first_name, users.last_name
+    FROM notes
+    LEFT JOIN users ON notes.author = users.id
+    ORDER BY notes.id DESC
+  `);
   return result.rows;
 }
 
