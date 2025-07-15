@@ -102,11 +102,36 @@ router.post('/login', async (req, res, next) => {
 });
 
 // Mevcut kullanıcı bilgisini getir (Session/cookie tabanlı)
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: 'Giriş gerekli' });
   }
-  res.json({ user: req.user });
+  const user = req.user;
+  // Sahte istatistikler ve rozetler (örnek)
+  const stats = {
+    notesShared: 5,
+    notesDownloaded: 12,
+    totalViews: 100,
+    totalLikes: 20,
+    quizWins: 2
+  };
+  const badges = [
+    { id: 'login3', name: 'Giriş Ustası', icon: '🔥', description: '3 gün üst üste giriş yaptı', earned: new Date() }
+  ];
+  const dailyLogins = [new Date(), new Date(Date.now() - 86400000), new Date(Date.now() - 2*86400000)];
+  res.json({ user: {
+    id: user.id,
+    email: user.email,
+    firstName: user.first_name,
+    lastName: user.last_name,
+    role: user.role,
+    createdAt: user.created_at,
+    stats,
+    badges,
+    dailyLogins,
+    experience: 300,
+    nextLevelExp: 1000
+  }});
 });
 
 module.exports = router;
