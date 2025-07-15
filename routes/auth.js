@@ -107,7 +107,7 @@ router.get('/me', async (req, res) => {
     return res.status(401).json({ message: 'Giriş gerekli' });
   }
   const user = req.user;
-  // Sahte istatistikler ve rozetler (örnek)
+  // Profil için örnek istatistikler ve rozetler
   const stats = {
     notesShared: 5,
     notesDownloaded: 12,
