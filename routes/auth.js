@@ -28,17 +28,34 @@ router.post('/register', async (req, res) => {
 
 // Giriş
 router.post('/login', async (req, res, next) => {
+  console.log('=== LOGIN DEBUG ===');
+  console.log('Login attempt for:', req.body.email);
+  
   passport.authenticate('local', (err, user, info) => {
+    console.log('Passport authenticate result:');
+    console.log('Error:', err);
+    console.log('User:', user);
+    console.log('Info:', info);
+    
     if (err) return res.status(500).json({ message: 'Giriş sırasında hata oluştu.' });
     if (!user) return res.status(401).json({ message: info?.message || 'Giriş başarısız.' });
     
+    console.log('User found, attempting login...');
+    
     req.login(user, err => {
+      console.log('req.login result - Error:', err);
+      console.log('Session after login:', req.session);
+      
       if (err) return res.status(500).json({ message: 'Login hatası.' });
       
       // Session'ı kaydet
       req.session.save((err) => {
+        console.log('Session save result - Error:', err);
+        console.log('Final session:', req.session);
+        
         if (err) return res.status(500).json({ message: 'Session kaydetme hatası.' });
         
+        console.log('✅ Login successful');
         res.json({ 
           message: 'Giriş başarılı', 
           user: {
@@ -58,12 +75,17 @@ router.post('/login', async (req, res, next) => {
 
 // Mevcut kullanıcı bilgisini getir
 router.get('/me', (req, res) => {
-  console.log('Auth/me endpoint called');
+  console.log('=== AUTH/ME DEBUG ===');
+  console.log('Session ID:', req.sessionID);
   console.log('Session:', req.session);
+  console.log('Session.passport:', req.session.passport);
   console.log('User:', req.user);
   console.log('Is Authenticated:', req.isAuthenticated());
+  console.log('Session cookie:', req.session.cookie);
+  console.log('====================');
   
   if (req.isAuthenticated() && req.user) {
+    console.log('✅ User authenticated successfully');
     res.json({ 
       user: {
         id: req.user.id,
@@ -78,10 +100,13 @@ router.get('/me', (req, res) => {
       authenticated: true 
     });
   } else {
+    console.log('❌ User not authenticated');
     res.status(401).json({ 
       message: 'Oturum bulunamadı.',
       authenticated: false,
-      sessionId: req.sessionID
+      sessionId: req.sessionID,
+      sessionExists: !!req.session,
+      passportExists: !!req.session?.passport
     });
   }
 });
