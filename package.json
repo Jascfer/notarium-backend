@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "setup-db": "node setup-database.js",
+    "setup-founder": "node setup-founder.js"
   },
   "dependencies": {
     "@types/pg": "^8.15.4",

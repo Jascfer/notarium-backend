@@ -103,7 +103,12 @@ if (config.isProduction) {
 
 // Routes
 const authRoutes = require('./routes/auth');
+const quizRoutes = require('./routes/quiz');
+const notesRoutes = require('./routes/notes');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/quiz', quizRoutes);
+app.use('/api/notes', notesRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -326,12 +331,30 @@ app.use('*', (req, res) => {
 
 // Server start
 const PORT = config.PORT;
-server.listen(PORT, () => {
-  console.log(`🚀 Notarium Backend Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${config.NODE_ENV}`);
-  console.log(`🔗 Backend URL: ${config.BACKEND_URL}`);
-  console.log(`🌐 Frontend URL: ${config.FRONTEND_URL}`);
-  console.log(`🍪 Cookie Domain: ${config.COOKIE_DOMAIN}`);
-  console.log(`🔒 Cookie Secure: ${config.COOKIE_SECURE}`);
-  console.log(`🌍 Cookie SameSite: ${config.COOKIE_SAME_SITE}`);
-});
+
+// Veritabanı kurulumunu çalıştır
+const { setupDatabase } = require('./setup-database');
+
+async function startServer() {
+  try {
+    // Veritabanı kurulumu
+    console.log('🔧 Veritabanı kurulumu kontrol ediliyor...');
+    await setupDatabase();
+    
+    // Server'ı başlat
+    server.listen(PORT, () => {
+      console.log(`🚀 Notarium Backend Server running on port ${PORT}`);
+      console.log(`📊 Environment: ${config.NODE_ENV}`);
+      console.log(`🔗 Backend URL: ${config.BACKEND_URL}`);
+      console.log(`🌐 Frontend URL: ${config.FRONTEND_URL}`);
+      console.log(`🍪 Cookie Domain: ${config.COOKIE_DOMAIN}`);
+      console.log(`🔒 Cookie Secure: ${config.COOKIE_SECURE}`);
+      console.log(`🌍 Cookie SameSite: ${config.COOKIE_SAME_SITE}`);
+    });
+  } catch (error) {
+    console.error('❌ Server başlatma hatası:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

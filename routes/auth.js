@@ -3,6 +3,13 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createUser, findUserByEmail, findUserById } = require('../models/User');
+const { Pool } = require('pg');
+
+// PostgreSQL Pool
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL || 'postgresql://postgres:eAnTWVlXpaiFluEOPgwGXVHIyNEsMZJI@postgres.railway.internal:5432/railway',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key';
 const JWT_EXPIRES_IN = '7d';
@@ -115,9 +122,19 @@ router.get('/me', async (req, res) => {
   const currentLevelExp = experience % 100;
   const levelProgress = (currentLevelExp / 100) * 100;
   
-  // Avatar seçimi (kullanıcı tipine göre)
-  const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
-  const avatar = user.avatar || avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+  // Avatar'ı kullanıcının veritabanındaki değerinden al
+  let avatar = user.avatar;
+  if (!avatar) {
+    // Avatar yoksa varsayılan avatar ata ve veritabanına kaydet
+    const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
+    avatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+    
+    // Veritabanına kaydet
+    await pool.query(
+      'UPDATE users SET avatar = $1 WHERE id = $2',
+      [avatar, user.id]
+    );
+  }
   
   // Profil için örnek istatistikler ve rozetler
   const stats = {
@@ -149,6 +166,44 @@ router.get('/me', async (req, res) => {
     badges,
     dailyLogins
   }});
+});
+
+// Avatar değiştirme endpoint'i
+router.post('/avatar', async (req, res) => {
+  try {
+    if (!req.isAuthenticated || !req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: 'Giriş gerekli' });
+    }
+
+    const { avatar } = req.body;
+    
+    if (!avatar) {
+      return res.status(400).json({ message: 'Avatar seçimi gerekli' });
+    }
+
+    // Geçerli avatar seçenekleri
+    const validAvatars = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
+    
+    if (!validAvatars.includes(avatar)) {
+      return res.status(400).json({ message: 'Geçersiz avatar seçimi' });
+    }
+
+    // Avatar'ı veritabanında güncelle
+    await pool.query(
+      'UPDATE users SET avatar = $1 WHERE id = $2',
+      [avatar, req.user.id]
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Avatar başarıyla güncellendi',
+      avatar: avatar
+    });
+
+  } catch (error) {
+    console.error('Avatar güncelleme hatası:', error);
+    res.status(500).json({ message: 'Avatar güncellenirken hata oluştu' });
+  }
 });
 
 module.exports = router;
