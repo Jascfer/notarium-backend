@@ -15,7 +15,8 @@ async function createNote({ title, subject, author, description, tags, driveLink
 
 async function getNotes() {
   const result = await pool.query(`
-    SELECT notes.*, users.first_name, users.last_name
+    SELECT notes.*, users.first_name, users.last_name, 
+           FLOOR((COALESCE(users.experience, 300) / 100) + 1) as author_level
     FROM notes
     LEFT JOIN users ON notes.author = users.id
     ORDER BY notes.id DESC

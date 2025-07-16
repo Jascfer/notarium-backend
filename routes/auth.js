@@ -107,6 +107,18 @@ router.get('/me', async (req, res) => {
     return res.status(401).json({ message: 'Giriş gerekli' });
   }
   const user = req.user;
+  
+  // Seviye hesaplaması (experience bazlı)
+  const experience = user.experience || 300;
+  const level = Math.floor(experience / 100) + 1;
+  const nextLevelExp = level * 100;
+  const currentLevelExp = experience % 100;
+  const levelProgress = (currentLevelExp / 100) * 100;
+  
+  // Avatar seçimi (kullanıcı tipine göre)
+  const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
+  const avatar = user.avatar || avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+  
   // Profil için örnek istatistikler ve rozetler
   const stats = {
     notesShared: 5,
@@ -119,6 +131,7 @@ router.get('/me', async (req, res) => {
     { id: 'login3', name: 'Giriş Ustası', icon: '🔥', description: '3 gün üst üste giriş yaptı', earned: new Date() }
   ];
   const dailyLogins = [new Date(), new Date(Date.now() - 86400000), new Date(Date.now() - 2*86400000)];
+  
   res.json({ user: {
     id: user.id,
     email: user.email,
@@ -126,11 +139,15 @@ router.get('/me', async (req, res) => {
     lastName: user.last_name,
     role: user.role,
     createdAt: user.created_at,
+    avatar,
+    level,
+    experience,
+    nextLevelExp,
+    currentLevelExp,
+    levelProgress,
     stats,
     badges,
-    dailyLogins,
-    experience: 300,
-    nextLevelExp: 1000
+    dailyLogins
   }});
 });
 
