@@ -62,8 +62,8 @@ const sessionConfig = {
     createTableIfMissing: true
   }),
   secret: config.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
+  resave: true, // Session'ı her istekte kaydet
+  saveUninitialized: true, // Boş session'ları da kaydet
   name: 'connect.sid',
   cookie: {
     secure: config.COOKIE_SECURE, // Railway & Cloudflare => HTTPS
@@ -91,7 +91,7 @@ if (config.isProduction) {
 
 // Routes
 const authRoutes = require('./routes/auth');
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {

@@ -31,9 +31,27 @@ router.post('/login', async (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return res.status(500).json({ message: 'Giriş sırasında hata oluştu.' });
     if (!user) return res.status(401).json({ message: info?.message || 'Giriş başarısız.' });
+    
     req.login(user, err => {
       if (err) return res.status(500).json({ message: 'Login hatası.' });
-      res.json({ message: 'Giriş başarılı', user });
+      
+      // Session'ı kaydet
+      req.session.save((err) => {
+        if (err) return res.status(500).json({ message: 'Session kaydetme hatası.' });
+        
+        res.json({ 
+          message: 'Giriş başarılı', 
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            role: user.role,
+            createdAt: user.created_at
+          },
+          sessionId: req.sessionID
+        });
+      });
     });
   })(req, res, next);
 });
@@ -45,9 +63,17 @@ router.get('/me', (req, res) => {
   console.log('User:', req.user);
   console.log('Is Authenticated:', req.isAuthenticated());
   
-  if (req.isAuthenticated()) {
+  if (req.isAuthenticated() && req.user) {
     res.json({ 
-      user: req.user,
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        firstName: req.user.first_name,
+        lastName: req.user.last_name,
+        role: req.user.role,
+        createdAt: req.user.created_at,
+        avatar: req.user.avatar
+      },
       sessionId: req.sessionID,
       authenticated: true 
     });
