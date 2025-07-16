@@ -4,7 +4,6 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "setup-db": "node setup-database.js",
     "setup-founder": "node setup-founder.js"
   },
   "dependencies": {

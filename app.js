@@ -76,19 +76,7 @@ const sessionConfig = {
   proxy: config.isProduction // Railway proxy kullanıyor
 };
 
-app.use(session({
-  name: 'connect.sid',
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    domain: '.notarium.tr',     // ✅ Önemli
-    secure: true,               // ✅ HTTPS için gerekli
-    httpOnly: true,
-    sameSite: 'none',           // ✅ Cross-origin için "none" olmalı
-    maxAge: 1000 * 60 * 60 * 24 * 7
-  }
-}));
+app.use(session(sessionConfig));
 
 // Passport configuration
 require('./config/passport');
@@ -103,12 +91,7 @@ if (config.isProduction) {
 
 // Routes
 const authRoutes = require('./routes/auth');
-const quizRoutes = require('./routes/quiz');
-const notesRoutes = require('./routes/notes');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/quiz', quizRoutes);
-app.use('/api/notes', notesRoutes);
+app.use('/auth', authRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -293,28 +276,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Detaylı log middleware'i (tüm istekler için)
-app.use((req, res, next) => {
-  // favicon.ico isteği ise özel log
-  if (req.originalUrl === '/favicon.ico') {
-    console.log('[FAVICON] Favicon isteği geldi.');
-    return res.status(404).end();
-  }
-  // Diğer tüm istekler için detaylı log
-  console.log('--- [REQUEST LOG] ---');
-  console.log('Time:', new Date().toISOString());
-  console.log('Method:', req.method);
-  console.log('URL:', req.originalUrl);
-  console.log('Headers:', req.headers);
-  console.log('Cookies:', req.cookies);
-  console.log('Session:', req.session);
-  console.log('User:', req.user);
-  console.log('Query:', req.query);
-  console.log('Body:', req.body);
-  console.log('---------------------');
-  next();
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
@@ -332,14 +293,20 @@ app.use('*', (req, res) => {
 // Server start
 const PORT = config.PORT;
 
-// Veritabanı kurulumunu çalıştır
-const { setupDatabase } = require('./setup-database');
+// Founder setup script'ini import et
+const { setupFounder } = require('./setup-founder');
 
 async function startServer() {
   try {
-    // Veritabanı kurulumu
-    console.log('🔧 Veritabanı kurulumu kontrol ediliyor...');
-    await setupDatabase();
+    // Production'da founder rolünü ata
+    if (config.isProduction) {
+      console.log('👑 Production ortamında founder rolü kontrol ediliyor...');
+      try {
+        await setupFounder();
+      } catch (error) {
+        console.log('⚠️  Founder rolü atama hatası (devam ediliyor):', error.message);
+      }
+    }
     
     // Server'ı başlat
     server.listen(PORT, () => {
