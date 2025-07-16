@@ -28,34 +28,17 @@ router.post('/register', async (req, res) => {
 
 // Giriş
 router.post('/login', async (req, res, next) => {
-  console.log('=== LOGIN DEBUG ===');
-  console.log('Login attempt for:', req.body.email);
-  
   passport.authenticate('local', (err, user, info) => {
-    console.log('Passport authenticate result:');
-    console.log('Error:', err);
-    console.log('User:', user);
-    console.log('Info:', info);
-    
     if (err) return res.status(500).json({ message: 'Giriş sırasında hata oluştu.' });
     if (!user) return res.status(401).json({ message: info?.message || 'Giriş başarısız.' });
     
-    console.log('User found, attempting login...');
-    
     req.login(user, err => {
-      console.log('req.login result - Error:', err);
-      console.log('Session after login:', req.session);
-      
       if (err) return res.status(500).json({ message: 'Login hatası.' });
       
       // Session'ı kaydet
       req.session.save((err) => {
-        console.log('Session save result - Error:', err);
-        console.log('Final session:', req.session);
-        
         if (err) return res.status(500).json({ message: 'Session kaydetme hatası.' });
         
-        console.log('✅ Login successful');
         res.json({ 
           message: 'Giriş başarılı', 
           user: {
@@ -75,17 +58,7 @@ router.post('/login', async (req, res, next) => {
 
 // Mevcut kullanıcı bilgisini getir
 router.get('/me', (req, res) => {
-  console.log('=== AUTH/ME DEBUG ===');
-  console.log('Session ID:', req.sessionID);
-  console.log('Session:', req.session);
-  console.log('Session.passport:', req.session.passport);
-  console.log('User:', req.user);
-  console.log('Is Authenticated:', req.isAuthenticated());
-  console.log('Session cookie:', req.session.cookie);
-  console.log('====================');
-  
   if (req.isAuthenticated() && req.user) {
-    console.log('✅ User authenticated successfully');
     res.json({ 
       user: {
         id: req.user.id,
@@ -100,13 +73,10 @@ router.get('/me', (req, res) => {
       authenticated: true 
     });
   } else {
-    console.log('❌ User not authenticated');
     res.status(401).json({ 
       message: 'Oturum bulunamadı.',
       authenticated: false,
-      sessionId: req.sessionID,
-      sessionExists: !!req.session,
-      passportExists: !!req.session?.passport
+      sessionId: req.sessionID
     });
   }
 });
@@ -129,47 +99,6 @@ router.get('/test', (req, res) => {
     user: req.user,
     isAuthenticated: req.isAuthenticated()
   });
-});
-
-// Test login endpoint (sadece development için)
-router.post('/test-login', async (req, res) => {
-  try {
-    console.log('=== TEST LOGIN ===');
-    
-    // ozgurxspeaktr@gmail.com kullanıcısını bul
-    const user = await findUserByEmail('ozgurxspeaktr@gmail.com');
-    if (!user) {
-      return res.status(404).json({ message: 'Test kullanıcısı bulunamadı' });
-    }
-    
-    console.log('Test user found:', user);
-    
-    // Manuel login
-    req.login(user, (err) => {
-      if (err) {
-        console.log('Test login error:', err);
-        return res.status(500).json({ message: 'Test login hatası' });
-      }
-      
-      console.log('Test login successful');
-      console.log('Session after test login:', req.session);
-      
-      res.json({ 
-        message: 'Test login başarılı',
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.first_name,
-          lastName: user.last_name,
-          role: user.role
-        },
-        sessionId: req.sessionID
-      });
-    });
-  } catch (error) {
-    console.log('Test login error:', error);
-    res.status(500).json({ message: 'Test login hatası', error: error.message });
-  }
 });
 
 module.exports = router;
