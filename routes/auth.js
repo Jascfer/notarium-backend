@@ -131,4 +131,45 @@ router.get('/test', (req, res) => {
   });
 });
 
+// Test login endpoint (sadece development için)
+router.post('/test-login', async (req, res) => {
+  try {
+    console.log('=== TEST LOGIN ===');
+    
+    // ozgurxspeaktr@gmail.com kullanıcısını bul
+    const user = await findUserByEmail('ozgurxspeaktr@gmail.com');
+    if (!user) {
+      return res.status(404).json({ message: 'Test kullanıcısı bulunamadı' });
+    }
+    
+    console.log('Test user found:', user);
+    
+    // Manuel login
+    req.login(user, (err) => {
+      if (err) {
+        console.log('Test login error:', err);
+        return res.status(500).json({ message: 'Test login hatası' });
+      }
+      
+      console.log('Test login successful');
+      console.log('Session after test login:', req.session);
+      
+      res.json({ 
+        message: 'Test login başarılı',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role
+        },
+        sessionId: req.sessionID
+      });
+    });
+  } catch (error) {
+    console.log('Test login error:', error);
+    res.status(500).json({ message: 'Test login hatası', error: error.message });
+  }
+});
+
 module.exports = router;
