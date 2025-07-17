@@ -56,6 +56,35 @@ router.post('/login', async (req, res, next) => {
         if (err) return res.status(500).json({ message: 'Session kaydetme hatası.' });
         
         console.log('✅ Login successful');
+        
+        // Seviye hesaplaması (experience bazlı)
+        const experience = user.experience || 0;
+        const level = Math.floor(experience / 100) + 1;
+        const nextLevelExp = level * 100;
+        const currentLevelExp = experience % 100;
+        const levelProgress = (currentLevelExp / 100) * 100;
+        
+        // Avatar'ı kullanıcının veritabanındaki değerinden al
+        let avatar = user.avatar;
+        if (!avatar) {
+          // Avatar yoksa varsayılan avatar ata
+          const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
+          avatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+        }
+        
+        // Profil için örnek istatistikler ve rozetler
+        const stats = {
+          notesShared: 5,
+          notesDownloaded: 12,
+          totalViews: 100,
+          totalLikes: 20,
+          quizWins: 2
+        };
+        const badges = [
+          { id: 'login3', name: 'Giriş Ustası', icon: '🔥', description: '3 gün üst üste giriş yaptı', earned: new Date() }
+        ];
+        const dailyLogins = [new Date(), new Date(Date.now() - 86400000), new Date(Date.now() - 2*86400000)];
+        
         res.json({ 
           message: 'Giriş başarılı', 
           user: {
@@ -64,7 +93,16 @@ router.post('/login', async (req, res, next) => {
             firstName: user.first_name,
             lastName: user.last_name,
             role: user.role,
-            createdAt: user.created_at
+            createdAt: user.created_at,
+            avatar,
+            level,
+            experience,
+            nextLevelExp,
+            currentLevelExp,
+            levelProgress,
+            stats,
+            badges,
+            dailyLogins
           },
           sessionId: req.sessionID
         });
@@ -85,6 +123,35 @@ router.get('/me', (req, res) => {
   
   if (req.isAuthenticated() && req.user) {
     console.log('✅ User authenticated successfully');
+    
+    // Seviye hesaplaması (experience bazlı)
+    const experience = req.user.experience || 0;
+    const level = Math.floor(experience / 100) + 1;
+    const nextLevelExp = level * 100;
+    const currentLevelExp = experience % 100;
+    const levelProgress = (currentLevelExp / 100) * 100;
+    
+    // Avatar'ı kullanıcının veritabanındaki değerinden al
+    let avatar = req.user.avatar;
+    if (!avatar) {
+      // Avatar yoksa varsayılan avatar ata
+      const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
+      avatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+    }
+    
+    // Profil için örnek istatistikler ve rozetler
+    const stats = {
+      notesShared: 5,
+      notesDownloaded: 12,
+      totalViews: 100,
+      totalLikes: 20,
+      quizWins: 2
+    };
+    const badges = [
+      { id: 'login3', name: 'Giriş Ustası', icon: '🔥', description: '3 gün üst üste giriş yaptı', earned: new Date() }
+    ];
+    const dailyLogins = [new Date(), new Date(Date.now() - 86400000), new Date(Date.now() - 2*86400000)];
+    
     res.json({ 
       user: {
         id: req.user.id,
@@ -93,7 +160,15 @@ router.get('/me', (req, res) => {
         lastName: req.user.last_name,
         role: req.user.role,
         createdAt: req.user.created_at,
-        avatar: req.user.avatar
+        avatar,
+        level,
+        experience,
+        nextLevelExp,
+        currentLevelExp,
+        levelProgress,
+        stats,
+        badges,
+        dailyLogins
       },
       sessionId: req.sessionID,
       authenticated: true 
