@@ -52,6 +52,7 @@ router.post('/login', async (req, res, next) => {
       req.session.save((err) => {
         console.log('Session save result - Error:', err);
         console.log('Final session:', req.session);
+        console.log('Session passport after save:', req.session.passport);
         
         if (err) return res.status(500).json({ message: 'Session kaydetme hatası.' });
         
