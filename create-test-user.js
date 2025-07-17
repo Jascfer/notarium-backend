@@ -10,7 +10,9 @@ const pgPool = new Pool({
 
 async function createTestUser() {
   try {
-    console.log('Test user oluşturuluyor...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Test user oluşturuluyor...');
+    }
     
     // Test user bilgileri
     const testUser = {
@@ -45,10 +47,13 @@ async function createTestUser() {
       testUser.role
     ]);
     
-    console.log('✅ Test user başarıyla oluşturuldu:');
-    console.log('Email:', testUser.email);
-    console.log('Password:', testUser.password);
-    console.log('User ID:', result.rows[0].id);
+    if (process.env.NODE_ENV !== 'production') {
+      const maskedEmail = testUser.email.replace(/(.{2}).+(@.+)/, '$1***$2');
+      console.log('✅ Test user başarıyla oluşturuldu:');
+      console.log('Email:', maskedEmail);
+      console.log('Password:', '***');
+      console.log('User ID:', result.rows[0].id);
+    }
     
     // Admin user da oluştur
     const adminUser = {
@@ -69,10 +74,13 @@ async function createTestUser() {
       adminUser.role
     ]);
     
-    console.log('\n✅ Admin user başarıyla oluşturuldu:');
-    console.log('Email:', adminUser.email);
-    console.log('Password:', adminUser.password);
-    console.log('User ID:', adminResult.rows[0].id);
+    if (process.env.NODE_ENV !== 'production') {
+      const maskedEmail = adminUser.email.replace(/(.{2}).+(@.+)/, '$1***$2');
+      console.log('\n✅ Admin user başarıyla oluşturuldu:');
+      console.log('Email:', maskedEmail);
+      console.log('Password:', '***');
+      console.log('User ID:', adminResult.rows[0].id);
+    }
     
     // Founder user da oluştur
     const founderUser = {
@@ -93,19 +101,24 @@ async function createTestUser() {
       founderUser.role
     ]);
     
-    console.log('\n✅ Founder user başarıyla oluşturuldu:');
-    console.log('Email:', founderUser.email);
-    console.log('Password:', founderUser.password);
-    console.log('User ID:', founderResult.rows[0].id);
+    if (process.env.NODE_ENV !== 'production') {
+      const maskedEmail = founderUser.email.replace(/(.{2}).+(@.+)/, '$1***$2');
+      console.log('\n✅ Founder user başarıyla oluşturuldu:');
+      console.log('Email:', maskedEmail);
+      console.log('Password:', '***');
+      console.log('User ID:', founderResult.rows[0].id);
+    }
     
-    console.log('\n🎉 Tüm test kullanıcıları oluşturuldu!');
-    console.log('\nTest kullanıcıları:');
-    console.log('1. Normal User:', testUser.email, '/', testUser.password);
-    console.log('2. Admin User:', adminUser.email, '/', adminUser.password);
-    console.log('3. Founder User:', founderUser.email, '/', founderUser.password);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('\n🎉 Tüm test kullanıcıları oluşturuldu!');
+      console.log('\nTest kullanıcıları:');
+      console.log('1. Normal User:', testUser.email.replace(/(.{2}).+(@.+)/, '$1***$2'), '/ ***');
+      console.log('2. Admin User:', adminUser.email.replace(/(.{2}).+(@.+)/, '$1***$2'), '/ ***');
+      console.log('3. Founder User:', founderUser.email.replace(/(.{2}).+(@.+)/, '$1***$2'), '/ ***');
+    }
     
   } catch (error) {
-    console.error('❌ Test user oluşturma hatası:', error);
+    console.error('\u274c Test user oluşturma hatası:', error);
   } finally {
     await pgPool.end();
   }

@@ -97,14 +97,16 @@ app.use(passport.session());
 
 // Session debugging middleware - AFTER Passport middleware
 app.use((req, res, next) => {
-  console.log('=== SESSION DEBUG ===');
-  console.log('Session ID:', req.sessionID);
-  console.log('Session exists:', !!req.session);
-  console.log('Session passport:', req.session?.passport);
-  console.log('User authenticated:', req.isAuthenticated());
-  console.log('req.headers.cookie:', req.headers.cookie);
-  console.log('Full session object:', req.session);
-  console.log('====================');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('=== SESSION DEBUG ===');
+    console.log('Session ID:', req.sessionID);
+    console.log('Session exists:', !!req.session);
+    console.log('Session passport:', req.session?.passport);
+    console.log('User authenticated:', req.isAuthenticated());
+    console.log('req.headers.cookie:', req.headers.cookie);
+    console.log('Full session object:', req.session);
+    console.log('====================');
+  }
   next();
 });
 
@@ -178,11 +180,15 @@ let bannedUserIds = [];
 
 // Socket.io connection handler
 io.on('connection', (socket) => {
-  console.log('Socket connected:', socket.id, 'User ID:', socket.userId);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Socket connected:', socket.id, 'User ID:', socket.userId);
+  }
   
   // Kullanıcı giriş yaptığında bilgisini al
   socket.on('userOnline', (userInfo) => {
-    console.log('User online:', userInfo);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('User online:', userInfo);
+    }
     
     // Banlıysa bağlantıyı kes
     if (bannedUserIds.includes(userInfo.id)) {
@@ -202,14 +208,18 @@ io.on('connection', (socket) => {
 
   // Kanal mesajlarını gönder
   socket.on('joinChannel', (channel) => {
-    console.log('User joined channel:', channel, 'Socket:', socket.id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('User joined channel:', channel, 'Socket:', socket.id);
+    }
     socket.join(channel);
     socket.emit('chatHistory', channelMessages[channel] || []);
   });
 
   // Mesaj gönderildiğinde
   socket.on('sendMessage', ({ channel, message }) => {
-    console.log('Message sent to channel:', channel);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Message sent to channel:', channel);
+    }
     
     // Etkinlik Duyuruları kanalına sadece adminler mesaj gönderebilir
     if (channel === 'etkinlik-duyurular') {
@@ -233,7 +243,9 @@ io.on('connection', (socket) => {
 
   // Admin tarafından kullanıcıyı banla
   socket.on('banUser', (userId) => {
-    console.log('Ban request for user:', userId);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Ban request for user:', userId);
+    }
     
     const adminUser = onlineUsers[socket.id];
     if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'founder')) {
@@ -247,7 +259,9 @@ io.on('connection', (socket) => {
     let foundUser = false;
     for (const [sockId, u] of Object.entries(onlineUsers)) {
       if (u.id === userId) {
-        console.log('Banning user:', u.name);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Banning user:', u.name);
+        }
         io.to(sockId).emit('banned');
         io.sockets.sockets.get(sockId)?.disconnect();
         delete onlineUsers[sockId];
@@ -257,7 +271,9 @@ io.on('connection', (socket) => {
     }
     
     if (!foundUser) {
-      console.log('User to ban not found:', userId);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('User to ban not found:', userId);
+      }
     }
     
     io.emit('onlineUsers', Object.values(onlineUsers));
@@ -265,7 +281,9 @@ io.on('connection', (socket) => {
 
   // Admin tarafından kullanıcıyı uzaklaştır (kick)
   socket.on('kickUser', (userId) => {
-    console.log('Kick request for user:', userId);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Kick request for user:', userId);
+    }
     
     const adminUser = onlineUsers[socket.id];
     if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'founder')) {
@@ -276,7 +294,9 @@ io.on('connection', (socket) => {
     let foundUser = false;
     for (const [sockId, u] of Object.entries(onlineUsers)) {
       if (u.id === userId) {
-        console.log('Kicking user:', u.name);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Kicking user:', u.name);
+        }
         io.to(sockId).emit('kicked');
         io.sockets.sockets.get(sockId)?.disconnect();
         delete onlineUsers[sockId];
@@ -286,7 +306,9 @@ io.on('connection', (socket) => {
     }
     
     if (!foundUser) {
-      console.log('User to kick not found:', userId);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('User to kick not found:', userId);
+      }
     }
     
     io.emit('onlineUsers', Object.values(onlineUsers));
@@ -294,7 +316,9 @@ io.on('connection', (socket) => {
 
   // Kullanıcı bağlantıyı kopardığında
   socket.on('disconnect', () => {
-    console.log('Socket disconnected:', socket.id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Socket disconnected:', socket.id);
+    }
     delete onlineUsers[socket.id];
     io.emit('onlineUsers', Object.values(onlineUsers));
   });

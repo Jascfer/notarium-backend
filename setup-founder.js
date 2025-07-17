@@ -8,7 +8,9 @@ const pool = new Pool({
 
 async function setupFounder() {
   try {
-    console.log('👑 Kurucu rolü atanıyor...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('👑 Kurucu rolü atanıyor...');
+    }
     
     // ozgurxspeaktr@gmail.com kullanıcısını bul
     const result = await pool.query(
@@ -17,17 +19,25 @@ async function setupFounder() {
     );
     
     if (result.rows.length === 0) {
-      console.log('❌ ozgurxspeaktr@gmail.com e-postalı kullanıcı bulunamadı');
+      if (process.env.NODE_ENV !== 'production') {
+        const maskedEmail = 'oz***@gmail.com';
+        console.log('❌ %s e-postalı kullanıcı bulunamadı', maskedEmail);
+      }
       return;
     }
     
     const user = result.rows[0];
-    console.log(`👤 Kullanıcı bulundu: ${user.first_name} ${user.last_name} (${user.email})`);
-    console.log(`📊 Mevcut rol: ${user.role}`);
+    if (process.env.NODE_ENV !== 'production') {
+      const maskedEmail = user.email.replace(/(.{2}).+(@.+)/, '$1***$2');
+      console.log(`👤 Kullanıcı bulundu: ${user.first_name} ${user.last_name} (${maskedEmail})`);
+      console.log(`📊 Mevcut rol: ${user.role}`);
+    }
     
     // Eğer zaten founder ise güncelleme yapma
     if (user.role === 'founder') {
-      console.log('✅ Kullanıcı zaten founder rolüne sahip');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Kullanıcı zaten founder rolüne sahip');
+      }
       return;
     }
     
@@ -37,8 +47,11 @@ async function setupFounder() {
       ['founder', user.id]
     );
     
-    console.log('🎉 Kurucu rolü başarıyla atandı!');
-    console.log(`👑 ${user.first_name} ${user.last_name} artık kurucu (founder) rolüne sahip`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🎉 Kurucu rolü başarıyla atandı!');
+      const maskedEmail = user.email.replace(/(.{2}).+(@.+)/, '$1***$2');
+      console.log(`👑 ${user.first_name} ${user.last_name} artık kurucu (founder) rolüne sahip (${maskedEmail})`);
+    }
     
   } catch (error) {
     console.error('❌ Kurucu rolü atama hatası:', error);
@@ -52,7 +65,9 @@ async function setupFounder() {
 if (require.main === module) {
   setupFounder()
     .then(() => {
-      console.log('🚀 Kurucu rolü atama işlemi tamamlandı!');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🚀 Kurucu rolü atama işlemi tamamlandı!');
+      }
       process.exit(0);
     })
     .catch((error) => {

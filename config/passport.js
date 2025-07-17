@@ -56,29 +56,43 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     }
   ));
 } else {
-  console.log('GoogleStrategy is disabled: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set.');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('GoogleStrategy is disabled: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set.');
+  }
 }
 
 passport.serializeUser((user, done) => {
-  console.log('=== SERIALIZE USER DEBUG ===');
-  console.log('Serializing user:', JSON.stringify(user));
+  if (process.env.NODE_ENV !== 'production') {
+    const maskedUser = { ...user, email: user.email ? user.email.replace(/(.{2}).+(@.+)/, '$1***$2') : undefined, password: user.password ? '***' : undefined };
+    console.log('=== SERIALIZE USER DEBUG ===');
+    console.log('Serializing user:', JSON.stringify(maskedUser));
+  }
   done(null, user.id);
 });
 passport.deserializeUser(async (id, done) => {
   try {
-    console.log('=== DESERIALIZE USER DEBUG ===');
-    console.log('Deserializing user ID:', id);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('=== DESERIALIZE USER DEBUG ===');
+      console.log('Deserializing user ID:', id);
+    }
     const user = await findUserById(id);
-    console.log('User found from DB:', user ? JSON.stringify(user) : null);
+    if (process.env.NODE_ENV !== 'production') {
+      const maskedUser = user ? { ...user, email: user.email ? user.email.replace(/(.{2}).+(@.+)/, '$1***$2') : undefined, password: user.password ? '***' : undefined } : null;
+      console.log('User found from DB:', maskedUser ? JSON.stringify(maskedUser) : null);
+    }
     if (!user) {
-      console.log('❌ User not found in DB for ID:', id);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('\u274c User not found in DB for ID:', id);
+      }
       return done(null, null);
     }
-    console.log('✅ User deserialized successfully');
-    console.log('====================');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('\u2705 User deserialized successfully');
+      console.log('====================');
+    }
     done(null, user);
   } catch (err) {
-    console.error('❌ Deserialize user error:', err);
+    console.error('\u274c Deserialize user error:', err);
     done(err, null);
   }
 }); 
