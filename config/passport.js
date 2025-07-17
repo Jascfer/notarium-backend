@@ -58,9 +58,29 @@ passport.use(new GoogleStrategy({
 passport.serializeUser((user, done) => done(null, user.id));
 passport.deserializeUser(async (id, done) => {
   try {
+    console.log('=== DESERIALIZE USER DEBUG ===');
+    console.log('Deserializing user ID:', id);
+    
     const user = await findUserById(id);
+    console.log('User found from DB:', user ? {
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      avatar: user.avatar
+    } :null);    
+    if (!user) {
+      console.log('❌ User not found in DB for ID:', id);
+      return done(null, null);
+    }
+    
+    console.log('✅ User deserialized successfully');
+    console.log('====================');
+    
     done(null, user);
   } catch (err) {
+    console.error('❌ Deserialize user error:', err);
     done(err, null);
   }
 }); 
