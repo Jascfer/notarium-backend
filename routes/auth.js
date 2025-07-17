@@ -137,8 +137,8 @@ router.get('/me', (req, res) => {
       // Avatar yoksa varsayılan avatar ata
       const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
       avatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
-    }
-    
+  }
+  
     // Profil için örnek istatistikler ve rozetler
     const stats = {
       notesShared: 5,
