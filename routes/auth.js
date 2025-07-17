@@ -28,6 +28,9 @@ router.post('/register', async (req, res) => {
 
 // Giriş
 router.post('/login', async (req, res, next) => {
+  console.log('=== LOGIN ENDPOINT DEBUG ===');
+  console.log('req.headers.cookie:', req.headers.cookie);
+  console.log('Session before login:', req.session);
   console.log('=== LOGIN DEBUG ===');
   console.log('Login attempt for:', req.body.email);
   
@@ -114,94 +117,89 @@ router.post('/login', async (req, res, next) => {
 
 // Mevcut kullanıcı bilgisini getir
 router.get('/me', (req, res) => {
-  try {
-    console.log('=== AUTH/ME DEBUG ===');
-    console.log('Session ID:', req.sessionID);
-    console.log('Session exists:', !!req.session);
-    console.log('Session passport:', req.session?.passport);
-    console.log('User:', req.user);
-    console.log('Is Authenticated:', req.isAuthenticated());
-    console.log('====================');
+  console.log('=== AUTH/ME ENDPOINT DEBUG ===');
+  console.log('req.headers.cookie:', req.headers.cookie);
+  console.log('Session at /me:', req.session);
+  console.log('=== AUTH/ME DEBUG ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session exists:', !!req.session);
+  console.log('Session passport:', req.session?.passport);
+  console.log('User:', req.user);
+  console.log('Is Authenticated:', req.isAuthenticated());
+  console.log('====================');
+  
+  if (req.isAuthenticated() && req.user) {
+    console.log('✅ User authenticated successfully');
     
-    if (req.isAuthenticated() && req.user) {
-      console.log('✅ User authenticated successfully');
-      
-      // Validate user object
-      if (!req.user.id || !req.user.email) {
-        console.error('❌ Invalid user object:', req.user);
-        return res.status(500).json({ 
-          error: 'Invalid user object in session',
-          user: req.user
-        });
-      }
-      
-      // Seviye hesaplaması (experience bazlı)
-      const experience = req.user.experience || 0;
-      const level = Math.floor(experience / 100) + 1;
-      const nextLevelExp = level * 100;
-      const currentLevelExp = experience % 100;
-      const levelProgress = (currentLevelExp / 100) * 100;
-      // Avatar'ı kullanıcının veritabanındaki değerinden al
-      let avatar = req.user.avatar;
-      if (!avatar) {
-        // Avatar yoksa varsayılan avatar ata
-        const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
-        avatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
-      }
-      
-      // Profil için örnek istatistikler ve rozetler
-      const stats = {
-        notesShared: 5,
-        notesDownloaded: 12,
-        totalViews: 100,
-        totalLikes: 20,
-        quizWins: 2
-      };
-      const badges = [
-        { id: 'login3', name: 'Giriş Ustası', icon: '🔥', description: '3 gün üst üste giriş yaptı', earned: new Date() }
-      ];
-      const dailyLogins = [new Date(), new Date(Date.now() - 86400000), new Date(Date.now() - 2*86400000)];
-      
-      const userResponse = {
-        id: req.user.id,
-        email: req.user.email,
-        firstName: req.user.first_name,
-        lastName: req.user.last_name,
-        role: req.user.role,
-        createdAt: req.user.created_at,
-        avatar,
-        level,
-        experience,
-        nextLevelExp,
-        currentLevelExp,
-        levelProgress,
-        stats,
-        badges,
-        dailyLogins
-      };
-      
-      console.log('✅ Sending user response:', userResponse);
-      
-      res.json({ 
-        user: userResponse,
-        sessionId: req.sessionID,
-        authenticated: true 
-      });
-    } else {
-      console.log('❌ User not authenticated');
-      res.status(401).json({ 
-        message: 'Oturum bulunamadı.',
-        authenticated: false,
-        sessionId: req.sessionID,
-        sessionExists: !!req.session,
-        passportExists: !!req.session?.passport
+    // Validate user object
+    if (!req.user.id || !req.user.email) {
+      console.error('❌ Invalid user object:', req.user);
+      return res.status(500).json({ 
+        error: 'Invalid user object in session',
+        user: req.user
       });
     }
-  } catch (error) {
-    console.error('❌ Auth/me error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error in /me endpoint',
-      details: error.message 
+    
+    // Seviye hesaplaması (experience bazlı)
+    const experience = req.user.experience || 0;
+    const level = Math.floor(experience / 100) + 1;
+    const nextLevelExp = level * 100;
+    const currentLevelExp = experience % 100;
+    const levelProgress = (currentLevelExp / 100) * 100;
+    // Avatar'ı kullanıcının veritabanındaki değerinden al
+    let avatar = req.user.avatar;
+    if (!avatar) {
+      // Avatar yoksa varsayılan avatar ata
+      const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
+      avatar = avatarOptions[Math.floor(Math.random() * avatarOptions.length)];
+    }
+    
+    // Profil için örnek istatistikler ve rozetler
+    const stats = {
+      notesShared: 5,
+      notesDownloaded: 12,
+      totalViews: 100,
+      totalLikes: 20,
+      quizWins: 2
+    };
+    const badges = [
+      { id: 'login3', name: 'Giriş Ustası', icon: '🔥', description: '3 gün üst üste giriş yaptı', earned: new Date() }
+    ];
+    const dailyLogins = [new Date(), new Date(Date.now() - 86400000), new Date(Date.now() - 2*86400000)];
+    
+    const userResponse = {
+      id: req.user.id,
+      email: req.user.email,
+      firstName: req.user.first_name,
+      lastName: req.user.last_name,
+      role: req.user.role,
+      createdAt: req.user.created_at,
+      avatar,
+      level,
+      experience,
+      nextLevelExp,
+      currentLevelExp,
+      levelProgress,
+      stats,
+      badges,
+      dailyLogins
+    };
+    
+    console.log('✅ Sending user response:', userResponse);
+    
+    res.json({ 
+      user: userResponse,
+      sessionId: req.sessionID,
+      authenticated: true 
+    });
+  } else {
+    console.log('❌ User not authenticated');
+    res.status(401).json({ 
+      message: 'Oturum bulunamadı.',
+      authenticated: false,
+      sessionId: req.sessionID,
+      sessionExists: !!req.session,
+      passportExists: !!req.session?.passport
     });
   }
 });

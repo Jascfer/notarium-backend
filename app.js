@@ -102,6 +102,8 @@ app.use((req, res, next) => {
   console.log('Session exists:', !!req.session);
   console.log('Session passport:', req.session?.passport);
   console.log('User authenticated:', req.isAuthenticated());
+  console.log('req.headers.cookie:', req.headers.cookie);
+  console.log('Full session object:', req.session);
   console.log('====================');
   next();
 });
