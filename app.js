@@ -62,8 +62,8 @@ const sessionConfig = {
     createTableIfMissing: true
   }),
   secret: config.SESSION_SECRET,
-  resave: true, // Session'ı her istekte kaydet
-  saveUninitialized: true, // Boş session'ları da kaydet
+  resave: false, // <-- DÜZELTİLDİ
+  saveUninitialized: false, // <-- DÜZELTİLDİ
   name: 'connect.sid',
   cookie: {
     secure: config.COOKIE_SECURE, // Railway & Cloudflare => HTTPS
