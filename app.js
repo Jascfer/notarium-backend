@@ -54,29 +54,51 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Cookie parser
 app.use(cookieParser());
 
+// Test session store connection
+const sessionStore = new pgSession({
+  pool: pgPool,
+  tableName: 'sessions',
+  createTableIfMissing: true
+});
+
+sessionStore.on('connect', () => {
+  console.log('✅ Session store connected successfully');
+});
+
+sessionStore.on('error', (error) => {
+  console.error('❌ Session store error:', error);
+});
+
 // Session configuration - Cloudflare için optimize edildi
 const sessionConfig = {
-  store: new pgSession({
-    pool: pgPool,
-    tableName: 'sessions',
-    createTableIfMissing: true
-  }),
+  store: sessionStore,
   secret: config.SESSION_SECRET,
-  resave: true, // Session'ı her istekte kaydet
+  resave: true, // Sessionıher istekte kaydet
   saveUninitialized: true, // Boş session'ları da kaydet
   name: 'connect.sid',
   cookie: {
     secure: config.COOKIE_SECURE, // Railway & Cloudflare => HTTPS
     sameSite: config.COOKIE_SAME_SITE, // Cross-domain cookie için 'none'
     httpOnly: true,
-    maxAge: config.COOKIE_MAX_AGE, // 1 gün (rehberdeki öneri)
-    path: '/',
-    domain: config.isProduction ? config.COOKIE_DOMAIN : undefined
+    maxAge: config.COOKIE_MAX_AGE, //1 gün (rehberdeki öneri)
+    path: '/',    // Temporarily remove domain to test if itscausing issues
+    // domain: config.isProduction ? config.COOKIE_DOMAIN : undefined
   },
   proxy: config.isProduction // Railway proxy kullanıyor
 };
 
 app.use(session(sessionConfig));
+
+// Session debugging middleware - AFTER session middleware
+app.use((req, res, next) => {
+  console.log('=== SESSION DEBUG ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session exists:', !!req.session);
+  console.log('Session passport:', req.session?.passport);
+  console.log('User authenticated:', req.isAuthenticated());
+  console.log('====================');
+  next();
+});
 
 // Passport configuration
 require('./config/passport');
@@ -298,6 +320,38 @@ const { setupFounder } = require('./setup-founder');
 
 async function startServer() {
   try {
+    // Test session store and database connection
+    console.log('🔍 Testing session store and database connection...');
+    try {
+      // Test if sessions table exists
+      const tableCheck = await pgPool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'sessions'        );
+      `);
+      
+      if (tableCheck.rows[0].exists) {
+        console.log('✅ Sessions table exists');
+        
+        // Test session store operations
+        const testSessionId = 'test-session-' + Date.now();
+        await sessionStore.set(testSessionId, { test: 'data' });
+        const retrieved = await sessionStore.get(testSessionId);
+        await sessionStore.destroy(testSessionId);
+        
+        if (retrieved && retrieved.test === 'data') {
+          console.log('✅ Session store is working correctly');
+        } else {
+          console.log('⚠️ Session store test failed');
+        }
+      } else {
+        console.log('⚠️  Sessions table does not exist, will be created');
+      }
+    } catch (error) {
+      console.error('❌ Session store test failed:', error.message);
+    }
+    
     // Production'da founder rolünü ata
     if (config.isProduction) {
       console.log('👑 Production ortamında founder rolü kontrol ediliyor...');
