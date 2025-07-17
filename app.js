@@ -89,7 +89,13 @@ const sessionConfig = {
 
 app.use(session(sessionConfig));
 
-// Session debugging middleware - AFTER session middleware
+// Passport configuration
+require('./config/passport');
+const passport = require('passport');
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Session debugging middleware - AFTER Passport middleware
 app.use((req, res, next) => {
   console.log('=== SESSION DEBUG ===');
   console.log('Session ID:', req.sessionID);
@@ -99,12 +105,6 @@ app.use((req, res, next) => {
   console.log('====================');
   next();
 });
-
-// Passport configuration
-require('./config/passport');
-const passport = require('passport');
-app.use(passport.initialize());
-app.use(passport.session());
 
 // Trust proxy for Railway
 if (config.isProduction) {
