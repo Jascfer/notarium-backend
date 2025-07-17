@@ -73,13 +73,8 @@ sessionStore.on('error', (error) => {
 const sessionConfig = {
   store: sessionStore,
   secret: config.SESSION_SECRET,
-<<<<<<< HEAD
-  resave: false, // <-- DÜZELTİLDİ
-  saveUninitialized: false, // <-- DÜZELTİLDİ
-=======
-  resave: false, // Sessionı sadece değiştiğinde kaydet
+  resave: false, // Session'ı sadece değiştiğinde kaydet
   saveUninitialized: false, // Boş session'ları kaydetme
->>>>>>> 48960f87eb82004c685b36a3f396aae66327ba0e
   name: 'connect.sid',
   cookie: {
     secure: config.COOKIE_SECURE, // Railway & Cloudflare => HTTPS
