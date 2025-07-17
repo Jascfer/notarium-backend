@@ -119,6 +119,18 @@ if (config.isProduction) {
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+const notesRoutes = require('./routes/notes');
+app.use('/api/notes', notesRoutes);
+
+const quizRoutes = require('./routes/quiz');
+app.use('/api/quiz', quizRoutes);
+
+const chatRoutes = require('./routes/chat');
+app.use('/api/chat', chatRoutes);
+
+const supportRoutes = require('./routes/support');
+app.use('/api/support', supportRoutes);
+
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ 
