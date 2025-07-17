@@ -62,11 +62,33 @@ router.post('/login', async (req, res, next) => {
     req.session.regenerate((err) => {
       if (err) return res.status(500).json({ message: 'Session regenerate hatası.' });
 
+      // DEBUG: Dummy property ekle
+      req.session.dummy = true;
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Session after regenerate:', req.session);
+      }
+
       req.login(user, (err) => {
         if (err) return res.status(500).json({ message: 'Login hatası.' });
 
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Session after login:', req.session);
+          console.log('Session passport after login:', req.session.passport);
+          console.log('Session ID after login:', req.sessionID);
+          console.log('User after login:', req.user);
+          console.log('Is Authenticated after login:', req.isAuthenticated());
+        }
+
         req.session.save((err) => {
           if (err) return res.status(500).json({ message: 'Session kaydetme hatası.' });
+
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Session after save:', req.session);
+            console.log('Session passport after save:', req.session.passport);
+            console.log('Session ID after save:', req.sessionID);
+            console.log('User after save:', req.user);
+            console.log('Is Authenticated after save:', req.isAuthenticated());
+          }
 
           // Seviye hesaplaması (experience bazlı)
           const experience = user.experience || 0;
@@ -129,12 +151,10 @@ router.get('/me', async (req, res) => {
     console.log('=== AUTH/ME ENDPOINT DEBUG ===');
     console.log('req.headers.cookie:', req.headers.cookie);
     console.log('Session at /me:', req.session);
-    console.log('=== AUTH/ME DEBUG ===');
-    console.log('Session ID:', req.sessionID);
-    console.log('Session exists:', !!req.session);
-    console.log('Session passport:', req.session?.passport);
-    console.log('User:', req.user);
-    console.log('Is Authenticated:', req.isAuthenticated());
+    console.log('Session passport at /me:', req.session?.passport);
+    console.log('Session ID at /me:', req.sessionID);
+    console.log('User at /me:', req.user);
+    console.log('Is Authenticated at /me:', req.isAuthenticated());
     console.log('Session object at /me:', JSON.stringify(req.session));
     console.log('Cookies (req.cookies) at /me:', req.cookies);
     console.log('====================');
