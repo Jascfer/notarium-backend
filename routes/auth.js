@@ -38,6 +38,9 @@ router.post('/login', async (req, res, next) => {
   console.log('Session before login:', req.session);
   console.log('=== LOGIN DEBUG ===');
   console.log('Login attempt for:', req.body.email);
+  console.log('Session ID before login:', req.sessionID);
+  console.log('Session object before login:', JSON.stringify(req.session));
+  console.log('Cookies (req.cookies):', req.cookies);
   
   passport.authenticate('local', (err, user, info) => {
     console.log('Passport authenticate result:');
@@ -53,6 +56,9 @@ router.post('/login', async (req, res, next) => {
     req.login(user, err => {
       console.log('req.login result - Error:', err);
       console.log('Session after login:', req.session);
+      console.log('Session ID after login:', req.sessionID);
+      console.log('Session object after login:', JSON.stringify(req.session));
+      console.log('Cookies (req.cookies) after login:', req.cookies);
       
       if (err) return res.status(500).json({ message: 'Login hatası.' });
       
@@ -61,6 +67,9 @@ router.post('/login', async (req, res, next) => {
         console.log('Session save result - Error:', err);
         console.log('Final session:', req.session);
         console.log('Session passport after save:', req.session.passport);
+        console.log('Session ID after save:', req.sessionID);
+        console.log('Session object after save:', JSON.stringify(req.session));
+        console.log('Cookies (req.cookies) after save:', req.cookies);
         
         if (err) return res.status(500).json({ message: 'Session kaydetme hatası.' });
         
@@ -131,6 +140,8 @@ router.get('/me', async (req, res) => {
   console.log('Session passport:', req.session?.passport);
   console.log('User:', req.user);
   console.log('Is Authenticated:', req.isAuthenticated());
+  console.log('Session object at /me:', JSON.stringify(req.session));
+  console.log('Cookies (req.cookies) at /me:', req.cookies);
   console.log('====================');
   
   if (req.isAuthenticated() && req.user) {
