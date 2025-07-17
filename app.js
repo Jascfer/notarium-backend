@@ -54,24 +54,40 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Cookie parser
 app.use(cookieParser());
 
+// Test session store connection
+const sessionStore = new pgSession({
+  pool: pgPool,
+  tableName: 'sessions',
+  createTableIfMissing: true
+});
+
+sessionStore.on('connect', () => {
+  console.log('✅ Session store connected successfully');
+});
+
+sessionStore.on('error', (error) => {
+  console.error('❌ Session store error:', error);
+});
+
 // Session configuration - Cloudflare için optimize edildi
 const sessionConfig = {
-  store: new pgSession({
-    pool: pgPool,
-    tableName: 'sessions',
-    createTableIfMissing: true
-  }),
+  store: sessionStore,
   secret: config.SESSION_SECRET,
+<<<<<<< HEAD
   resave: false, // <-- DÜZELTİLDİ
   saveUninitialized: false, // <-- DÜZELTİLDİ
+=======
+  resave: false, // Sessionı sadece değiştiğinde kaydet
+  saveUninitialized: false, // Boş session'ları kaydetme
+>>>>>>> 48960f87eb82004c685b36a3f396aae66327ba0e
   name: 'connect.sid',
   cookie: {
     secure: config.COOKIE_SECURE, // Railway & Cloudflare => HTTPS
     sameSite: config.COOKIE_SAME_SITE, // Cross-domain cookie için 'none'
     httpOnly: true,
-    maxAge: config.COOKIE_MAX_AGE, // 1 gün (rehberdeki öneri)
+    maxAge: config.COOKIE_MAX_AGE, //1 gün (rehberdeki öneri)
     path: '/',
-    domain: config.isProduction ? config.COOKIE_DOMAIN : undefined
+    domain: config.isProduction ? config.COOKIE_DOMAIN : undefined // Bunu aktif ettim!
   },
   proxy: config.isProduction // Railway proxy kullanıyor
 };
@@ -83,6 +99,19 @@ require('./config/passport');
 const passport = require('passport');
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Session debugging middleware - AFTER Passport middleware
+app.use((req, res, next) => {
+  console.log('=== SESSION DEBUG ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session exists:', !!req.session);
+  console.log('Session passport:', req.session?.passport);
+  console.log('User authenticated:', req.isAuthenticated());
+  console.log('req.headers.cookie:', req.headers.cookie);
+  console.log('Full session object:', req.session);
+  console.log('====================');
+  next();
+});
 
 // Trust proxy for Railway
 if (config.isProduction) {
@@ -298,6 +327,38 @@ const { setupFounder } = require('./setup-founder');
 
 async function startServer() {
   try {
+    // Test session store and database connection
+    console.log('🔍 Testing session store and database connection...');
+    try {
+      // Test if sessions table exists
+      const tableCheck = await pgPool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'sessions'        );
+      `);
+      
+      if (tableCheck.rows[0].exists) {
+        console.log('✅ Sessions table exists');
+        
+        // Test session store operations
+        const testSessionId = 'test-session-' + Date.now();
+        await sessionStore.set(testSessionId, { test: 'data' });
+        const retrieved = await sessionStore.get(testSessionId);
+        await sessionStore.destroy(testSessionId);
+        
+        if (retrieved && retrieved.test === 'data') {
+          console.log('✅ Session store is working correctly');
+        } else {
+          console.log('⚠️ Session store test failed');
+        }
+      } else {
+        console.log('⚠️  Sessions table does not exist, will be created');
+      }
+    } catch (error) {
+      console.error('❌ Session store test failed:', error.message);
+    }
+    
     // Production'da founder rolünü ata
     if (config.isProduction) {
       console.log('👑 Production ortamında founder rolü kontrol ediliyor...');
