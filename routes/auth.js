@@ -149,7 +149,7 @@ router.get('/me', async (req, res) => {
       // Dinamik istatistikler
       const userId = req.user.id;
       // Not sayısı
-      const notesRes = await pool.query('SELECT COUNT(*) FROM notes WHERE author = $1', [userId]);
+      const notesRes = await pool.query('SELECT COUNT(*) FROM notes WHERE user_id = $1', [userId]);
       const notesShared = parseInt(notesRes.rows[0].count, 10);
       // Sohbet mesajı sayısı
       const chatRes = await pool.query('SELECT COUNT(*) FROM chat_messages WHERE user_id = $1', [userId]);
