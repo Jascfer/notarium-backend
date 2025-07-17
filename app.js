@@ -81,8 +81,8 @@ const sessionConfig = {
     sameSite: config.COOKIE_SAME_SITE, // Cross-domain cookie için 'none'
     httpOnly: true,
     maxAge: config.COOKIE_MAX_AGE, //1 gün (rehberdeki öneri)
-    path: '/',    // Temporarily remove domain to test if itscausing issues
-    // domain: config.isProduction ? config.COOKIE_DOMAIN : undefined
+    path: '/',
+    domain: config.isProduction ? config.COOKIE_DOMAIN : undefined // Bunu aktif ettim!
   },
   proxy: config.isProduction // Railway proxy kullanıyor
 };
